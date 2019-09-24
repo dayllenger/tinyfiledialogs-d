@@ -127,6 +127,11 @@ char const tinyfd_needs[] = "\
 #pragma warning(disable : 4706) /* allows usage of strncpy, strcpy, strcat, sprintf, fopen */
 #endif
 
+static void response(char const *const message)
+{
+    strcpy(tinyfd_response, message);
+}
+
 static char *getPathWithoutFinalSlash(
     char *const aoDestination, /* make sure it is allocated, use _MAX_PATH */
     char const *const aSource) /* aoDestination and aSource can be the same */
@@ -810,7 +815,7 @@ static int tinyfd_messageBoxW(
 
     if (aTitle && !wcscmp(aTitle, L"tinyfd_query"))
     {
-        strcpy(tinyfd_response, "windows_wchar");
+        response("windows_wchar");
         return 1;
     }
 
@@ -907,7 +912,7 @@ static int tinyfd_notifyPopupW(
 
     if (aTitle && !wcscmp(aTitle, L"tinyfd_query"))
     {
-        strcpy(tinyfd_response, "windows_wchar");
+        response("windows_wchar");
         return 1;
     }
 
@@ -1003,7 +1008,7 @@ static wchar_t const *tinyfd_inputBoxW(
 
     if (aTitle && !wcscmp(aTitle, L"tinyfd_query"))
     {
-        strcpy(tinyfd_response, "windows_wchar");
+        response("windows_wchar");
         return (wchar_t const *)1;
     }
 
@@ -1317,7 +1322,7 @@ static wchar_t const *tinyfd_saveFileDialogW(
 
     if (aTitle && !wcscmp(aTitle, L"tinyfd_query"))
     {
-        strcpy(tinyfd_response, "windows_wchar");
+        response("windows_wchar");
         return (wchar_t const *)1;
     }
 
@@ -1470,7 +1475,7 @@ static wchar_t const *tinyfd_openFileDialogW(
 
     if (aTitle && !wcscmp(aTitle, L"tinyfd_query"))
     {
-        strcpy(tinyfd_response, "windows_wchar");
+        response("windows_wchar");
         return (wchar_t const *)1;
     }
 
@@ -1668,7 +1673,7 @@ static wchar_t const *tinyfd_selectFolderDialogW(
 
     if (aTitle && !wcscmp(aTitle, L"tinyfd_query"))
     {
-        strcpy(tinyfd_response, "windows_wchar");
+        response("windows_wchar");
         return (wchar_t const *)1;
     }
 
@@ -1747,7 +1752,7 @@ static wchar_t const *tinyfd_colorChooserW(
 
     if (aTitle && !wcscmp(aTitle, L"tinyfd_query"))
     {
-        strcpy(tinyfd_response, "windows_wchar");
+        response("windows_wchar");
         return (wchar_t const *)1;
     }
 
@@ -2274,7 +2279,7 @@ int tinyfd_messageBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "windows");
+            response("windows");
             return 1;
         }
         return messageBoxWinGui8(
@@ -2286,7 +2291,7 @@ int tinyfd_messageBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "dialog");
+            response("dialog");
             return 0;
         }
         return messageBoxWinConsole(
@@ -2296,7 +2301,7 @@ int tinyfd_messageBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "basicinput");
+            response("basicinput");
             return 0;
         }
         if (!gWarningDisplayed && !tinyfd_forceConsole)
@@ -2381,7 +2386,7 @@ int tinyfd_notifyPopup(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "windows");
+            response("windows");
             return 1;
         }
         return notifyWinGui(aTitle, aMessage, aIconType);
@@ -2414,7 +2419,7 @@ char const *tinyfd_inputBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "windows");
+            response("windows");
             return (char const *)1;
         }
         lBuff[0] = '\0';
@@ -2426,7 +2431,7 @@ char const *tinyfd_inputBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "dialog");
+            response("dialog");
             return (char const *)0;
         }
         lBuff[0] = '\0';
@@ -2436,7 +2441,7 @@ char const *tinyfd_inputBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "basicinput");
+            response("basicinput");
             return (char const *)0;
         }
         lBuff[0] = '\0';
@@ -2504,7 +2509,7 @@ char const *tinyfd_saveFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "windows");
+            response("windows");
             return (char const *)1;
         }
         p = saveFileDialogWinGui8(lBuff,
@@ -2516,7 +2521,7 @@ char const *tinyfd_saveFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "dialog");
+            response("dialog");
             return (char const *)0;
         }
         p = saveFileDialogWinConsole(lBuff, aTitle, aDefaultPathAndFile);
@@ -2525,7 +2530,7 @@ char const *tinyfd_saveFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "basicinput");
+            response("basicinput");
             return (char const *)0;
         }
         p = tinyfd_inputBox(aTitle, "Save file", "");
@@ -2565,7 +2570,7 @@ char const *tinyfd_openFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "windows");
+            response("windows");
             return (char const *)1;
         }
         p = openFileDialogWinGui8(lBuff,
@@ -2578,7 +2583,7 @@ char const *tinyfd_openFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "dialog");
+            response("dialog");
             return (char const *)0;
         }
         p = openFileDialogWinConsole(lBuff,
@@ -2588,7 +2593,7 @@ char const *tinyfd_openFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "basicinput");
+            response("basicinput");
             return (char const *)0;
         }
         p = tinyfd_inputBox(aTitle, "Open file", "");
@@ -2622,7 +2627,7 @@ char const *tinyfd_selectFolderDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "windows");
+            response("windows");
             return (char const *)1;
         }
 #ifndef TINYFD_NOSELECTFOLDERWIN
@@ -2635,7 +2640,7 @@ char const *tinyfd_selectFolderDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "dialog");
+            response("dialog");
             return (char const *)0;
         }
         p = selectFolderDialogWinConsole(lBuff, aTitle, aDefaultPath);
@@ -2644,7 +2649,7 @@ char const *tinyfd_selectFolderDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "basicinput");
+            response("basicinput");
             return (char const *)0;
         }
         p = tinyfd_inputBox(aTitle, "Select folder", "");
@@ -2678,7 +2683,7 @@ char const *tinyfd_colorChooser(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "windows");
+            response("windows");
             return (char const *)1;
         }
         return colorChooserWinGui8(
@@ -3612,7 +3617,7 @@ int tinyfd_messageBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "applescript");
+            response("applescript");
             return 1;
         }
 
@@ -3705,7 +3710,7 @@ int tinyfd_messageBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "kdialog");
+            response("kdialog");
             return 1;
         }
 
@@ -3776,7 +3781,7 @@ int tinyfd_messageBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "zenity");
+                response("zenity");
                 return 1;
             }
             strcpy(str, "szAnswer=$(zenity");
@@ -3789,7 +3794,7 @@ int tinyfd_messageBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "matedialog");
+                response("matedialog");
                 return 1;
             }
             strcpy(str, "szAnswer=$(matedialog");
@@ -3798,7 +3803,7 @@ int tinyfd_messageBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "shellementary");
+                response("shellementary");
                 return 1;
             }
             strcpy(str, "szAnswer=$(shellementary");
@@ -3807,7 +3812,7 @@ int tinyfd_messageBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "qarma");
+                response("qarma");
                 return 1;
             }
             strcpy(str, "szAnswer=$(qarma");
@@ -3885,7 +3890,7 @@ int tinyfd_messageBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python2-tkinter");
+            response("python2-tkinter");
             return 1;
         }
 
@@ -3994,7 +3999,7 @@ else :\n\tprint 1\n\"");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python3-tkinter");
+            response("python3-tkinter");
             return 1;
         }
 
@@ -4093,7 +4098,7 @@ else :\n\tprint(1)\n\"");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "gxmessage");
+                response("gxmessage");
                 return 1;
             }
             strcpy(str, "gxmessage");
@@ -4102,7 +4107,7 @@ else :\n\tprint(1)\n\"");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "gmessage");
+                response("gmessage");
                 return 1;
             }
             strcpy(str, "gmessage");
@@ -4111,7 +4116,7 @@ else :\n\tprint(1)\n\"");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "xmessage");
+                response("xmessage");
                 return 1;
             }
             strcpy(str, "xmessage");
@@ -4185,7 +4190,7 @@ else :\n\tprint(1)\n\"");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "gdialog");
+                response("gdialog");
                 return 1;
             }
             lWasGraphicDialog = 1;
@@ -4195,7 +4200,7 @@ else :\n\tprint(1)\n\"");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "xdialog");
+                response("xdialog");
                 return 1;
             }
             lWasGraphicDialog = 1;
@@ -4205,7 +4210,7 @@ else :\n\tprint(1)\n\"");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "dialog");
+                response("dialog");
                 return 0;
             }
             if (isTerminalRunning())
@@ -4225,7 +4230,7 @@ else :\n\tprint(1)\n\"");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "whiptail");
+                response("whiptail");
                 return 0;
             }
             strcpy(str, "(whiptail ");
@@ -4234,7 +4239,7 @@ else :\n\tprint(1)\n\"");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "whiptail");
+                response("whiptail");
                 return 0;
             }
             lWasXterm = 1;
@@ -4346,7 +4351,7 @@ tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "basicinput");
+            response("basicinput");
             return 0;
         }
         strcpy(str, terminalName());
@@ -4418,7 +4423,7 @@ tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python-dbus");
+            response("python-dbus");
             return 1;
         }
         strcpy(str, gPythonName);
@@ -4447,7 +4452,7 @@ tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "perl-dbus");
+            response("perl-dbus");
             return 1;
         }
 
@@ -4464,7 +4469,7 @@ tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
 
         if (lQuery)
         {
-            strcpy(tinyfd_response, "notifysend");
+            response("notifysend");
             return 1;
         }
         strcpy(str, "notify-send");
@@ -4493,7 +4498,7 @@ tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "basicinput");
+            response("basicinput");
             return 0;
         }
         if (!gWarningDisplayed && !tinyfd_forceConsole)
@@ -4646,7 +4651,7 @@ int tinyfd_notifyPopup(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "applescript");
+            response("applescript");
             return 1;
         }
 
@@ -4674,7 +4679,7 @@ int tinyfd_notifyPopup(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "kdialog");
+            response("kdialog");
             return 1;
         }
         strcpy(str, "kdialog");
@@ -4708,7 +4713,7 @@ int tinyfd_notifyPopup(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "zenity");
+                response("zenity");
                 return 1;
             }
             strcpy(str, "zenity");
@@ -4717,7 +4722,7 @@ int tinyfd_notifyPopup(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "matedialog");
+                response("matedialog");
                 return 1;
             }
             strcpy(str, "matedialog");
@@ -4726,7 +4731,7 @@ int tinyfd_notifyPopup(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "shellementary");
+                response("shellementary");
                 return 1;
             }
             strcpy(str, "shellementary");
@@ -4735,7 +4740,7 @@ int tinyfd_notifyPopup(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "qarma");
+                response("qarma");
                 return 1;
             }
             strcpy(str, "qarma");
@@ -4766,7 +4771,7 @@ int tinyfd_notifyPopup(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "perl-dbus");
+            response("perl-dbus");
             return 1;
         }
         sprintf(str, "perl -e \"use Net::DBus;\
@@ -4781,7 +4786,7 @@ int tinyfd_notifyPopup(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python-dbus");
+            response("python-dbus");
             return 1;
         }
         strcpy(str, gPythonName);
@@ -4810,7 +4815,7 @@ int tinyfd_notifyPopup(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "notifysend");
+            response("notifysend");
             return 1;
         }
         strcpy(str, "notify-send");
@@ -4889,7 +4894,7 @@ char const *tinyfd_inputBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "applescript");
+            response("applescript");
             return (char const *)1;
         }
         strcpy(str, "osascript ");
@@ -4929,7 +4934,7 @@ char const *tinyfd_inputBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "kdialog");
+            response("kdialog");
             return (char const *)1;
         }
         strcpy(str, "szAnswer=$(kdialog");
@@ -4973,7 +4978,7 @@ char const *tinyfd_inputBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "zenity");
+                response("zenity");
                 return (char const *)1;
             }
             strcpy(str, "szAnswer=$(zenity");
@@ -4986,7 +4991,7 @@ char const *tinyfd_inputBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "matedialog");
+                response("matedialog");
                 return (char const *)1;
             }
             strcpy(str, "szAnswer=$(matedialog");
@@ -4995,7 +5000,7 @@ char const *tinyfd_inputBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "shellementary");
+                response("shellementary");
                 return (char const *)1;
             }
             strcpy(str, "szAnswer=$(shellementary");
@@ -5004,7 +5009,7 @@ char const *tinyfd_inputBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "qarma");
+                response("qarma");
                 return (char const *)1;
             }
             strcpy(str, "szAnswer=$(qarma");
@@ -5048,7 +5053,7 @@ char const *tinyfd_inputBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "gxmessage");
+                response("gxmessage");
                 return (char const *)1;
             }
             strcpy(str, "szAnswer=$(gxmessage -buttons Ok:1,Cancel:0 -center \"");
@@ -5057,7 +5062,7 @@ char const *tinyfd_inputBox(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "gmessage");
+                response("gmessage");
                 return (char const *)1;
             }
             strcpy(str, "szAnswer=$(gmessage -buttons Ok:1,Cancel:0 -center \"");
@@ -5086,7 +5091,7 @@ char const *tinyfd_inputBox(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python2-tkinter");
+            response("python2-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython2Name);
@@ -5140,7 +5145,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python3-tkinter");
+            response("python3-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython3Name);
@@ -5183,7 +5188,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "gdialog");
+                response("gdialog");
                 return (char const *)1;
             }
             lWasGraphicDialog = 1;
@@ -5194,7 +5199,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "xdialog");
+                response("xdialog");
                 return (char const *)1;
             }
             lWasGraphicDialog = 1;
@@ -5204,7 +5209,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "dialog");
+                response("dialog");
                 return (char const *)0;
             }
             if (isTerminalRunning())
@@ -5224,7 +5229,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "whiptail");
+                response("whiptail");
                 return (char const *)0;
             }
             strcpy(str, "(whiptail ");
@@ -5233,7 +5238,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "whiptail");
+                response("whiptail");
                 return (char const *)0;
             }
             lWasXterm = 1;
@@ -5309,7 +5314,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "basicinput");
+            response("basicinput");
             return (char const *)0;
         }
         lWasBasicXterm = 1;
@@ -5348,7 +5353,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         tinyfd_messageBox(gTitle, tinyfd_needs, "ok", "warning", 0);
         if (lQuery)
         {
-            strcpy(tinyfd_response, "no_solution");
+            response("no_solution");
             return (char const *)0;
         }
         return NULL;
@@ -5357,7 +5362,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "basicinput");
+            response("basicinput");
             return (char const *)0;
         }
         if (!gWarningDisplayed && !tinyfd_forceConsole)
@@ -5507,7 +5512,7 @@ char const *tinyfd_saveFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "applescript");
+            response("applescript");
             return (char const *)1;
         }
         strcpy(str, "osascript ");
@@ -5544,7 +5549,7 @@ char const *tinyfd_saveFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "kdialog");
+            response("kdialog");
             return (char const *)1;
         }
 
@@ -5598,7 +5603,7 @@ char const *tinyfd_saveFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "zenity");
+                response("zenity");
                 return (char const *)1;
             }
             strcpy(str, "zenity");
@@ -5611,7 +5616,7 @@ char const *tinyfd_saveFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "matedialog");
+                response("matedialog");
                 return (char const *)1;
             }
             strcpy(str, "matedialog");
@@ -5620,7 +5625,7 @@ char const *tinyfd_saveFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "shellementary");
+                response("shellementary");
                 return (char const *)1;
             }
             strcpy(str, "shellementary");
@@ -5629,7 +5634,7 @@ char const *tinyfd_saveFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "qarma");
+                response("qarma");
                 return (char const *)1;
             }
             strcpy(str, "qarma");
@@ -5674,7 +5679,7 @@ char const *tinyfd_saveFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python2-tkinter");
+            response("python2-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython2Name);
@@ -5741,7 +5746,7 @@ char const *tinyfd_saveFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python3-tkinter");
+            response("python3-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython3Name);
@@ -5798,7 +5803,7 @@ char const *tinyfd_saveFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "xdialog");
+                response("xdialog");
                 return (char const *)1;
             }
             lWasGraphicDialog = 1;
@@ -5808,7 +5813,7 @@ char const *tinyfd_saveFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "dialog");
+                response("dialog");
                 return (char const *)0;
             }
             strcpy(str, "(dialog ");
@@ -5817,7 +5822,7 @@ char const *tinyfd_saveFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "dialog");
+                response("dialog");
                 return (char const *)0;
             }
             lWasXterm = 1;
@@ -5957,7 +5962,7 @@ char const *tinyfd_openFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "applescript");
+            response("applescript");
             return (char const *)1;
         }
         strcpy(str, "osascript ");
@@ -6026,7 +6031,7 @@ char const *tinyfd_openFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "kdialog");
+            response("kdialog");
             return (char const *)1;
         }
         lWasKdialog = 1;
@@ -6085,7 +6090,7 @@ char const *tinyfd_openFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "zenity");
+                response("zenity");
                 return (char const *)1;
             }
             strcpy(str, "zenity");
@@ -6098,7 +6103,7 @@ char const *tinyfd_openFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "matedialog");
+                response("matedialog");
                 return (char const *)1;
             }
             strcpy(str, "matedialog");
@@ -6107,7 +6112,7 @@ char const *tinyfd_openFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "shellementary");
+                response("shellementary");
                 return (char const *)1;
             }
             strcpy(str, "shellementary");
@@ -6116,7 +6121,7 @@ char const *tinyfd_openFileDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "qarma");
+                response("qarma");
                 return (char const *)1;
             }
             strcpy(str, "qarma");
@@ -6165,7 +6170,7 @@ char const *tinyfd_openFileDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python2-tkinter");
+            response("python2-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython2Name);
@@ -6238,7 +6243,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python3-tkinter");
+            response("python3-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython3Name);
@@ -6302,7 +6307,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "xdialog");
+                response("xdialog");
                 return (char const *)1;
             }
             lWasGraphicDialog = 1;
@@ -6312,7 +6317,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "dialog");
+                response("dialog");
                 return (char const *)0;
             }
             strcpy(str, "(dialog ");
@@ -6321,7 +6326,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "dialog");
+                response("dialog");
                 return (char const *)0;
             }
             lWasXterm = 1;
@@ -6460,7 +6465,7 @@ char const *tinyfd_selectFolderDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "applescript");
+            response("applescript");
             return (char const *)1;
         }
         strcpy(str, "osascript ");
@@ -6489,7 +6494,7 @@ char const *tinyfd_selectFolderDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "kdialog");
+            response("kdialog");
             return (char const *)1;
         }
         strcpy(str, "kdialog");
@@ -6527,7 +6532,7 @@ char const *tinyfd_selectFolderDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "zenity");
+                response("zenity");
                 return (char const *)1;
             }
             strcpy(str, "zenity");
@@ -6540,7 +6545,7 @@ char const *tinyfd_selectFolderDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "matedialog");
+                response("matedialog");
                 return (char const *)1;
             }
             strcpy(str, "matedialog");
@@ -6549,7 +6554,7 @@ char const *tinyfd_selectFolderDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "shellementary");
+                response("shellementary");
                 return (char const *)1;
             }
             strcpy(str, "shellementary");
@@ -6558,7 +6563,7 @@ char const *tinyfd_selectFolderDialog(
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "qarma");
+                response("qarma");
                 return (char const *)1;
             }
             strcpy(str, "qarma");
@@ -6588,7 +6593,7 @@ char const *tinyfd_selectFolderDialog(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python2-tkinter");
+            response("python2-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython2Name);
@@ -6625,7 +6630,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python3-tkinter");
+            response("python3-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython3Name);
@@ -6652,7 +6657,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "xdialog");
+                response("xdialog");
                 return (char const *)1;
             }
             lWasGraphicDialog = 1;
@@ -6662,7 +6667,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "dialog");
+                response("dialog");
                 return (char const *)0;
             }
             strcpy(str, "(dialog ");
@@ -6671,7 +6676,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "dialog");
+                response("dialog");
                 return (char const *)0;
             }
             lWasXterm = 1;
@@ -6808,7 +6813,7 @@ char const *tinyfd_colorChooser(
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "applescript");
+            response("applescript");
             return (char const *)1;
         }
         lWasOsascript = 1;
@@ -6852,7 +6857,7 @@ to set mycolor to choose color default color {");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "kdialog");
+            response("kdialog");
             return (char const *)1;
         }
         strcpy(str, "kdialog");
@@ -6876,7 +6881,7 @@ to set mycolor to choose color default color {");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "zenity3");
+                response("zenity3");
                 return (char const *)1;
             }
             strcpy(str, "zenity");
@@ -6889,7 +6894,7 @@ to set mycolor to choose color default color {");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "matedialog");
+                response("matedialog");
                 return (char const *)1;
             }
             strcpy(str, "matedialog");
@@ -6898,7 +6903,7 @@ to set mycolor to choose color default color {");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "shellementary");
+                response("shellementary");
                 return (char const *)1;
             }
             strcpy(str, "shellementary");
@@ -6907,7 +6912,7 @@ to set mycolor to choose color default color {");
         {
             if (lQuery)
             {
-                strcpy(tinyfd_response, "qarma");
+                response("qarma");
                 return (char const *)1;
             }
             strcpy(str, "qarma");
@@ -6932,7 +6937,7 @@ to set mycolor to choose color default color {");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "xdialog");
+            response("xdialog");
             return (char const *)1;
         }
         lWasXdialog = 1;
@@ -6951,7 +6956,7 @@ to set mycolor to choose color default color {");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python2-tkinter");
+            response("python2-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython2Name);
@@ -6987,7 +6992,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
     {
         if (lQuery)
         {
-            strcpy(tinyfd_response, "python3-tkinter");
+            response("python3-tkinter");
             return (char const *)1;
         }
         strcpy(str, gPython3Name);
