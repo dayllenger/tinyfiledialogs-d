@@ -42,7 +42,7 @@ NO INCLUDE
 
 The dialogs can be forced into console mode
 
-Windows (XP to 10) ASCII MBCS UTF-8 UTF-16
+Windows (XP to 10) ASCII UTF-8
 - native code & vbs create the graphic dialogs
 - enhanced console mode can use dialog.exe from
 http://andrear.altervista.org/home/cdialog.php
@@ -110,14 +110,6 @@ extern char const tinyfd_needs[]; /* info about requirements */
 extern int tinyfd_verbose; /* 0 (default) or 1 : on unix, prints the command line calls */
 extern int tinyfd_silent; /* 1 (default) or 0 : on unix,
                           hide errors and warnings from called dialog*/
-
-#ifdef _WIN32
-/* for UTF-16 use the functions at the end of this files */
-extern int tinyfd_winUtf8; /* 0 (default MBCS) or 1 (UTF-8)*/
-/* on windows string char can be 0:MBCS or 1:UTF-8
-unless your code is really prepared for UTF-8 on windows, leave this on MBSC.
-Or you can use the UTF-16 (wchar) prototypes at the end of ths file.*/
-#endif
 
 extern int tinyfd_forceConsole;  /* 0 (default) or 1 */
 /* for unix & windows: 0 (graphic mode) or 1 (console mode).
@@ -196,74 +188,6 @@ char const * tinyfd_colorChooser(
 		/* aDefaultRGB and aoResultRGB can be the same array */
 		/* returns NULL on cancel */
 
-
-/************ NOT CROSS PLATFORM SECTION STARTS HERE ************************/
-#ifdef _WIN32
-#ifndef TINYFD_NOLIB
-
-/* windows only - utf-16 version */
-int tinyfd_notifyPopupW(
-	wchar_t const * const aTitle, /* NULL or L"" */
-	wchar_t const * const aMessage, /* NULL or L"" may contain \n \t */
-	wchar_t const * const aIconType); /* L"info" L"warning" L"error" */
-
-/* windows only - utf-16 version */
-int tinyfd_messageBoxW(
-	wchar_t const * const aTitle , /* NULL or L"" */
-	wchar_t const * const aMessage, /* NULL or L"" may contain \n \t */
-	wchar_t const * const aDialogType, /* L"ok" L"okcancel" L"yesno" */
-	wchar_t const * const aIconType, /* L"info" L"warning" L"error" L"question" */
-	int const aDefaultButton ); /* 0 for cancel/no , 1 for ok/yes */
-		/* returns 0 for cancel/no , 1 for ok/yes */
-
-/* windows only - utf-16 version */
-wchar_t const * tinyfd_inputBoxW(
-	wchar_t const * const aTitle, /* NULL or L"" */
-	wchar_t const * const aMessage, /* NULL or L"" may NOT contain \n nor \t */
-	wchar_t const * const aDefaultInput ); /* L"" , if NULL it's a passwordBox */
-
-/* windows only - utf-16 version */
-wchar_t const * tinyfd_saveFileDialogW(
-	wchar_t const * const aTitle, /* NULL or L"" */
-	wchar_t const * const aDefaultPathAndFile, /* NULL or L"" */
-	int const aNumOfFilterPatterns, /* 0 */
-	wchar_t const * const * const aFilterPatterns, /* NULL or {L"*.jpg",L"*.png"} */
-	wchar_t const * const aSingleFilterDescription); /* NULL or L"image files" */
-		/* returns NULL on cancel */
-
-/* windows only - utf-16 version */
-wchar_t const * tinyfd_openFileDialogW(
-	wchar_t const * const aTitle, /* NULL or L"" */
-	wchar_t const * const aDefaultPathAndFile, /* NULL or L"" */
-	int const aNumOfFilterPatterns , /* 0 */
-	wchar_t const * const * const aFilterPatterns, /* NULL {L"*.jpg",L"*.png"} */
-	wchar_t const * const aSingleFilterDescription, /* NULL or L"image files" */
-	int const aAllowMultipleSelects ) ; /* 0 or 1 */
-		/* in case of multiple files, the separator is | */
-		/* returns NULL on cancel */
-
-/* windows only - utf-16 version */
-wchar_t const * tinyfd_selectFolderDialogW(
-	wchar_t const * const aTitle, /* NULL or L"" */
-	wchar_t const * const aDefaultPath); /* NULL or L"" */
-		/* returns NULL on cancel */
-
-/* windows only - utf-16 version */
-wchar_t const * tinyfd_colorChooserW(
-	wchar_t const * const aTitle, /* NULL or L"" */
-	wchar_t const * const aDefaultHexRGB, /* NULL or L"#FF0000" */
-	unsigned char const aDefaultRGB[3] , /* { 0 , 255 , 255 } */
-	unsigned char aoResultRGB[3] ) ; /* { 0 , 0 , 0 } */
-		/* returns the hexcolor as a string L"#FF0000" */
-		/* aoResultRGB also contains the result */
-		/* aDefaultRGB is used only if aDefaultHexRGB is NULL */
-		/* aDefaultRGB and aoResultRGB can be the same array */
-		/* returns NULL on cancel */
-
-
-#endif /*TINYFD_NOLIB*/
-#endif /*_WIN32 */
-
 #ifdef	__cplusplus
 }
 #endif
@@ -273,7 +197,6 @@ wchar_t const * tinyfd_colorChooserW(
 /*
 - This is not for android nor ios.
 - The code is pure C, perfectly compatible with C++.
-- the windows only wchar_t (utf-16) prototypes are in the header file
 - windows is fully supported from XP to 10 (maybe even older versions)
 - C# & LUA via dll, see example files
 - OSX supported from 10.4 to latest (maybe even older versions)
@@ -282,7 +205,7 @@ wchar_t const * tinyfd_colorChooserW(
 - If no filter description is provided,
   the list of patterns will become the description.
 - char const * filterPatterns[3] = { "*.obj" , "*.stl" , "*.dxf" } ;
-- On windows char defaults to MBCS, set tinyfd_winUtf8=1 to use UTF-8
+- On windows UTF-8 is used as the default encoding
 - On windows link against Comdlg32.lib and Ole32.lib
   This linking is not compulsary for console mode (see above).
 - On unix: it tries command line calls, so no such need.
