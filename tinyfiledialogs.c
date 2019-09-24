@@ -5577,16 +5577,31 @@ char const *tinyfd_saveFileDialog(
 
         if (aNumOfFilterPatterns > 0)
         {
-            strcat(str, " \"");
+            int pattern; // otherwise MIME-type filter
             for (i = 0; i < aNumOfFilterPatterns; i++)
             {
-                strcat(str, aFilterPatterns[i]);
-                strcat(str, " ");
+                pattern = strchr(aFilterPatterns[i], '*') != 0;
+                if (pattern)
+                    break;
             }
-            if (aSingleFilterDescription && strlen(aSingleFilterDescription))
+            strcat(str, " \"");
+            if (pattern)
             {
-                strcat(str, " | ");
-                strcat(str, aSingleFilterDescription);
+                if (aSingleFilterDescription && strlen(aSingleFilterDescription))
+                {
+                    strcat(str, aSingleFilterDescription);
+                }
+                strcat(str, "(");
+            }
+            for (i = 0; i < aNumOfFilterPatterns; i++)
+            {
+                if (i != 0)
+                    strcat(str, " ");
+                strcat(str, aFilterPatterns[i]);
+            }
+            if (pattern)
+            {
+                strcat(str, ")");
             }
             strcat(str, "\"");
         }
@@ -6060,16 +6075,31 @@ char const *tinyfd_openFileDialog(
 
         if (aNumOfFilterPatterns > 0)
         {
-            strcat(str, " \"");
+            int pattern; // otherwise MIME-type filter
             for (i = 0; i < aNumOfFilterPatterns; i++)
             {
-                strcat(str, aFilterPatterns[i]);
-                strcat(str, " ");
+                pattern = strchr(aFilterPatterns[i], '*') != 0;
+                if (pattern)
+                    break;
             }
-            if (aSingleFilterDescription && strlen(aSingleFilterDescription))
+            strcat(str, " \"");
+            if (pattern)
             {
-                strcat(str, " | ");
-                strcat(str, aSingleFilterDescription);
+                if (aSingleFilterDescription && strlen(aSingleFilterDescription))
+                {
+                    strcat(str, aSingleFilterDescription);
+                }
+                strcat(str, "(");
+            }
+            for (i = 0; i < aNumOfFilterPatterns; i++)
+            {
+                if (i != 0)
+                    strcat(str, " ");
+                strcat(str, aFilterPatterns[i]);
+            }
+            if (pattern)
+            {
+                strcat(str, ")");
             }
             strcat(str, "\"");
         }
