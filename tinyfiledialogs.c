@@ -3190,13 +3190,13 @@ static char gPythonName[16];
 
 static int isDarwin()
 {
-    static int lsIsDarwin = -1;
+    static int ret = -1;
     struct utsname lUtsname;
-    if (lsIsDarwin < 0)
+    if (ret < 0)
     {
-        lsIsDarwin = !uname(&lUtsname) && !strcmp(lUtsname.sysname, "Darwin");
+        ret = !uname(&lUtsname) && !strcmp(lUtsname.sysname, "Darwin");
     }
-    return lsIsDarwin;
+    return ret;
 }
 
 static int dirExists(char const *const aDirPath)
@@ -3295,33 +3295,33 @@ static int tryCommand(char const *const aCommand)
 
 static int isTerminalRunning()
 {
-    static int lIsTerminalRunning = -1;
-    if (lIsTerminalRunning < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lIsTerminalRunning = isatty(1);
+        ret = isatty(1);
         if (tinyfd_verbose)
-            printf("isTerminalRunning %d\n", lIsTerminalRunning);
+            printf("isTerminalRunning %d\n", ret);
     }
-    return lIsTerminalRunning;
+    return ret;
 }
 
 static char const *dialogNameOnly()
 {
-    static char lDialogName[128] = "*";
-    if (lDialogName[0] == '*')
+    static char ret[128] = "*";
+    if (ret[0] == '*')
     {
-        if (isDarwin() && strcpy(lDialogName, "/opt/local/bin/dialog") && detectPresence(lDialogName))
+        if (isDarwin() && strcpy(ret, "/opt/local/bin/dialog") && detectPresence(ret))
         {
         }
-        else if (strcpy(lDialogName, "dialog") && detectPresence(lDialogName))
+        else if (strcpy(ret, "dialog") && detectPresence(ret))
         {
         }
         else
         {
-            strcpy(lDialogName, "");
+            strcpy(ret, "");
         }
     }
-    return lDialogName;
+    return ret;
 }
 
 int isDialogVersionBetter09b()
@@ -3364,21 +3364,21 @@ int isDialogVersionBetter09b()
 
 static int whiptailPresentOnly()
 {
-    static int lWhiptailPresent = -1;
-    if (lWhiptailPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lWhiptailPresent = detectPresence("whiptail");
+        ret = detectPresence("whiptail");
     }
-    return lWhiptailPresent;
+    return ret;
 }
 
 static char const *terminalName()
 {
-    static char lTerminalName[128] = "*";
+    static char ret[128] = "*";
     char lShellName[64] = "*";
     int *lArray;
 
-    if (lTerminalName[0] == '*')
+    if (ret[0] == '*')
     {
         if (detectPresence("bash"))
         {
@@ -3390,104 +3390,104 @@ static char const *terminalName()
         }
         else
         {
-            strcpy(lTerminalName, "");
+            strcpy(ret, "");
             return NULL;
         }
 
         if (isDarwin())
         {
-            if (strcpy(lTerminalName, "/opt/X11/bin/xterm") && detectPresence(lTerminalName))
+            if (strcpy(ret, "/opt/X11/bin/xterm") && detectPresence(ret))
             {
-                strcat(lTerminalName, " -fa 'DejaVu Sans Mono' -fs 10 -title tinyfiledialogs -e ");
-                strcat(lTerminalName, lShellName);
+                strcat(ret, " -fa 'DejaVu Sans Mono' -fs 10 -title tinyfiledialogs -e ");
+                strcat(ret, lShellName);
             }
             else
             {
-                strcpy(lTerminalName, "");
+                strcpy(ret, "");
             }
         }
-        else if (strcpy(lTerminalName, "xterm") /*good (small without parameters)*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "xterm") /*good (small without parameters)*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -fa 'DejaVu Sans Mono' -fs 10 -title tinyfiledialogs -e ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -fa 'DejaVu Sans Mono' -fs 10 -title tinyfiledialogs -e ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "terminator") /*good*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "terminator") /*good*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -x ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -x ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "lxterminal") /*good*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "lxterminal") /*good*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -e ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -e ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "konsole") /*good*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "konsole") /*good*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -e ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -e ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "kterm") /*good*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "kterm") /*good*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -e ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -e ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "tilix") /*good*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "tilix") /*good*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -e ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -e ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "xfce4-terminal") /*good*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "xfce4-terminal") /*good*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -x ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -x ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "mate-terminal") /*good*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "mate-terminal") /*good*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -x ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -x ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "Eterm") /*good*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "Eterm") /*good*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -e ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -e ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "evilvte") /*good*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "evilvte") /*good*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -e ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -e ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "pterm") /*good (only letters)*/
-                 && detectPresence(lTerminalName))
+        else if (strcpy(ret, "pterm") /*good (only letters)*/
+                 && detectPresence(ret))
         {
-            strcat(lTerminalName, " -e ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " -e ");
+            strcat(ret, lShellName);
         }
-        else if (strcpy(lTerminalName, "gnome-terminal") && detectPresence(lTerminalName) && (lArray = getMajorMinorPatch(lTerminalName)) && ((lArray[0] < 3) || (lArray[0] == 3 && lArray[1] <= 6)))
+        else if (strcpy(ret, "gnome-terminal") && detectPresence(ret) && (lArray = getMajorMinorPatch(ret)) && ((lArray[0] < 3) || (lArray[0] == 3 && lArray[1] <= 6)))
         {
-            strcat(lTerminalName, " --disable-factory -x ");
-            strcat(lTerminalName, lShellName);
+            strcat(ret, " --disable-factory -x ");
+            strcat(ret, lShellName);
         }
         else
         {
-            strcpy(lTerminalName, "");
+            strcpy(ret, "");
         }
         /* bad: koi rxterm guake tilda vala-terminal qterminal
                 aterm Terminal terminology sakura lilyterm weston-terminal
                 roxterm termit xvt rxvt mrxvt urxvt */
     }
-    if (strlen(lTerminalName))
+    if (strlen(ret))
     {
-        return lTerminalName;
+        return ret;
     }
     else
     {
@@ -3497,11 +3497,11 @@ static char const *terminalName()
 
 static char const *dialogName()
 {
-    char const *lDialogName;
-    lDialogName = dialogNameOnly();
-    if (strlen(lDialogName) && (isTerminalRunning() || terminalName()))
+    char const *ret;
+    ret = dialogNameOnly();
+    if (strlen(ret) && (isTerminalRunning() || terminalName()))
     {
-        return lDialogName;
+        return ret;
     }
     else
     {
@@ -3511,11 +3511,11 @@ static char const *dialogName()
 
 static int whiptailPresent()
 {
-    int lWhiptailPresent;
-    lWhiptailPresent = whiptailPresentOnly();
-    if (lWhiptailPresent && (isTerminalRunning() || terminalName()))
+    int ret;
+    ret = whiptailPresentOnly();
+    if (ret && (isTerminalRunning() || terminalName()))
     {
-        return lWhiptailPresent;
+        return ret;
     }
     else
     {
@@ -3530,203 +3530,203 @@ static int graphicMode()
 
 static int pactlPresent()
 {
-    static int lPactlPresent = -1;
-    if (lPactlPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lPactlPresent = detectPresence("pactl");
+        ret = detectPresence("pactl");
     }
-    return lPactlPresent;
+    return ret;
 }
 
 static int speakertestPresent()
 {
-    static int lSpeakertestPresent = -1;
-    if (lSpeakertestPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lSpeakertestPresent = detectPresence("speaker-test");
+        ret = detectPresence("speaker-test");
     }
-    return lSpeakertestPresent;
+    return ret;
 }
 
 static int beepexePresent()
 {
-    static int lBeepexePresent = -1;
-    if (lBeepexePresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lBeepexePresent = detectPresence("beep.exe");
+        ret = detectPresence("beep.exe");
     }
-    return lBeepexePresent;
+    return ret;
 }
 
 static int xmessagePresent()
 {
-    static int lXmessagePresent = -1;
-    if (lXmessagePresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lXmessagePresent = detectPresence("xmessage"); /*if not tty,not on osxpath*/
+        ret = detectPresence("xmessage"); /*if not tty,not on osxpath*/
     }
-    return lXmessagePresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int gxmessagePresent()
 {
-    static int lGxmessagePresent = -1;
-    if (lGxmessagePresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lGxmessagePresent = detectPresence("gxmessage");
+        ret = detectPresence("gxmessage");
     }
-    return lGxmessagePresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int gmessagePresent()
 {
-    static int lGmessagePresent = -1;
-    if (lGmessagePresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lGmessagePresent = detectPresence("gmessage");
+        ret = detectPresence("gmessage");
     }
-    return lGmessagePresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int notifysendPresent()
 {
-    static int lNotifysendPresent = -1;
-    if (lNotifysendPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lNotifysendPresent = detectPresence("notify-send");
+        ret = detectPresence("notify-send");
     }
-    return lNotifysendPresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int perlPresent()
 {
-    static int lPerlPresent = -1;
+    static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
     FILE *lIn;
 
-    if (lPerlPresent < 0)
+    if (ret < 0)
     {
-        lPerlPresent = detectPresence("perl");
-        if (lPerlPresent)
+        ret = detectPresence("perl");
+        if (ret)
         {
             lIn = popen("perl -MNet::DBus -e \"Net::DBus->session->get_service('org.freedesktop.Notifications')\" 2>&1", "r");
             if (fgets(lBuff, sizeof(lBuff), lIn) == NULL)
             {
-                lPerlPresent = 2;
+                ret = 2;
             }
             pclose(lIn);
             if (tinyfd_verbose)
-                printf("perl-dbus %d\n", lPerlPresent);
+                printf("perl-dbus %d\n", ret);
         }
     }
-    return graphicMode() ? lPerlPresent : 0;
+    return graphicMode() ? ret : 0;
 }
 
 static int afplayPresent()
 {
-    static int lAfplayPresent = -1;
+    static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
     FILE *lIn;
 
-    if (lAfplayPresent < 0)
+    if (ret < 0)
     {
-        lAfplayPresent = detectPresence("afplay");
-        if (lAfplayPresent)
+        ret = detectPresence("afplay");
+        if (ret)
         {
             lIn = popen("test -e /System/Library/Sounds/Ping.aiff || echo Ping", "r");
             if (fgets(lBuff, sizeof(lBuff), lIn) == NULL)
             {
-                lAfplayPresent = 2;
+                ret = 2;
             }
             pclose(lIn);
             if (tinyfd_verbose)
-                printf("afplay %d\n", lAfplayPresent);
+                printf("afplay %d\n", ret);
         }
     }
-    return graphicMode() ? lAfplayPresent : 0;
+    return graphicMode() ? ret : 0;
 }
 
 static int xdialogPresent()
 {
-    static int lXdialogPresent = -1;
-    if (lXdialogPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lXdialogPresent = detectPresence("Xdialog");
+        ret = detectPresence("Xdialog");
     }
-    return lXdialogPresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int gdialogPresent()
 {
-    static int lGdialoglPresent = -1;
-    if (lGdialoglPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lGdialoglPresent = detectPresence("gdialog");
+        ret = detectPresence("gdialog");
     }
-    return lGdialoglPresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int osascriptPresent()
 {
-    static int lOsascriptPresent = -1;
-    if (lOsascriptPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
         gWarningDisplayed |= !!getenv("SSH_TTY");
-        lOsascriptPresent = detectPresence("osascript");
+        ret = detectPresence("osascript");
     }
-    return lOsascriptPresent && graphicMode() && !getenv("SSH_TTY");
+    return ret && graphicMode() && !getenv("SSH_TTY");
 }
 
 static int qarmaPresent()
 {
-    static int lQarmaPresent = -1;
-    if (lQarmaPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lQarmaPresent = detectPresence("qarma");
+        ret = detectPresence("qarma");
     }
-    return lQarmaPresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int matedialogPresent()
 {
-    static int lMatedialogPresent = -1;
-    if (lMatedialogPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lMatedialogPresent = detectPresence("matedialog");
+        ret = detectPresence("matedialog");
     }
-    return lMatedialogPresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int shellementaryPresent()
 {
-    static int lShellementaryPresent = -1;
-    if (lShellementaryPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lShellementaryPresent = 0; /*detectPresence("shellementary"); shellementary is not ready yet */
+        ret = 0; /*detectPresence("shellementary"); shellementary is not ready yet */
     }
-    return lShellementaryPresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int zenityPresent()
 {
-    static int lZenityPresent = -1;
-    if (lZenityPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lZenityPresent = detectPresence("zenity");
+        ret = detectPresence("zenity");
     }
-    return lZenityPresent && graphicMode();
+    return ret && graphicMode();
 }
 
 static int zenity3Present()
 {
-    static int lZenity3Present = -1;
+    static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
     FILE *lIn;
     int lIntTmp;
 
-    if (lZenity3Present < 0)
+    if (ret < 0)
     {
-        lZenity3Present = 0;
+        ret = 0;
         if (zenityPresent())
         {
             lIn = popen("zenity --version", "r");
@@ -3734,121 +3734,121 @@ static int zenity3Present()
             {
                 if (atoi(lBuff) >= 3)
                 {
-                    lZenity3Present = 3;
+                    ret = 3;
                     lIntTmp = atoi(strtok(lBuff, ".") + 2);
                     if (lIntTmp >= 18)
                     {
-                        lZenity3Present = 5;
+                        ret = 5;
                     }
                     else if (lIntTmp >= 10)
                     {
-                        lZenity3Present = 4;
+                        ret = 4;
                     }
                 }
                 else if ((atoi(lBuff) == 2) && (atoi(strtok(lBuff, ".") + 2) >= 32))
                 {
-                    lZenity3Present = 2;
+                    ret = 2;
                 }
                 if (tinyfd_verbose)
-                    printf("zenity %d\n", lZenity3Present);
+                    printf("zenity %d\n", ret);
             }
             pclose(lIn);
         }
     }
-    return graphicMode() ? lZenity3Present : 0;
+    return graphicMode() ? ret : 0;
 }
 
 static int kdialogPresent()
 {
-    static int lKdialogPresent = -1;
+    static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
     FILE *lIn;
     char *lDesktop;
 
-    if (lKdialogPresent < 0)
+    if (ret < 0)
     {
         if (zenityPresent())
         {
             lDesktop = getenv("XDG_SESSION_DESKTOP");
             if (!lDesktop || (strcmp(lDesktop, "KDE") && strcmp(lDesktop, "lxqt")))
             {
-                lKdialogPresent = 0;
-                return lKdialogPresent;
+                ret = 0;
+                return ret;
             }
         }
 
-        lKdialogPresent = detectPresence("kdialog");
-        if (lKdialogPresent && !getenv("SSH_TTY"))
+        ret = detectPresence("kdialog");
+        if (ret && !getenv("SSH_TTY"))
         {
             lIn = popen("kdialog --attach 2>&1", "r");
             if (fgets(lBuff, sizeof(lBuff), lIn) != NULL)
             {
                 if (!strstr("Unknown", lBuff))
                 {
-                    lKdialogPresent = 2;
+                    ret = 2;
                     if (tinyfd_verbose)
-                        printf("kdialog-attach %d\n", lKdialogPresent);
+                        printf("kdialog-attach %d\n", ret);
                 }
             }
             pclose(lIn);
 
-            if (lKdialogPresent == 2)
+            if (ret == 2)
             {
-                lKdialogPresent = 1;
+                ret = 1;
                 lIn = popen("kdialog --passivepopup 2>&1", "r");
                 if (fgets(lBuff, sizeof(lBuff), lIn) != NULL)
                 {
                     if (!strstr("Unknown", lBuff))
                     {
-                        lKdialogPresent = 2;
+                        ret = 2;
                         if (tinyfd_verbose)
-                            printf("kdialog-popup %d\n", lKdialogPresent);
+                            printf("kdialog-popup %d\n", ret);
                     }
                 }
                 pclose(lIn);
             }
         }
     }
-    return graphicMode() ? lKdialogPresent : 0;
+    return graphicMode() ? ret : 0;
 }
 
 static int osx9orBetter()
 {
-    static int lOsx9orBetter = -1;
+    static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
     FILE *lIn;
     int V, v;
 
-    if (lOsx9orBetter < 0)
+    if (ret < 0)
     {
-        lOsx9orBetter = 0;
+        ret = 0;
         lIn = popen("osascript -e 'set osver to system version of (system info)'", "r");
         if ((fgets(lBuff, sizeof(lBuff), lIn) != NULL) && (2 == sscanf(lBuff, "%d.%d", &V, &v)))
         {
             V = V * 100 + v;
             if (V >= 1009)
             {
-                lOsx9orBetter = 1;
+                ret = 1;
             }
         }
         pclose(lIn);
         if (tinyfd_verbose)
-            printf("Osx10 = %d, %d = %s\n", lOsx9orBetter, V, lBuff);
+            printf("Osx10 = %d, %d = %s\n", ret, V, lBuff);
     }
-    return lOsx9orBetter;
+    return ret;
 }
 
 static int python2Present()
 {
-    static int lPython2Present = -1;
+    static int ret = -1;
     int i;
 
-    if (lPython2Present < 0)
+    if (ret < 0)
     {
-        lPython2Present = 0;
+        ret = 0;
         strcpy(gPython2Name, "python2");
         if (detectPresence(gPython2Name))
-            lPython2Present = 1;
+            ret = 1;
         else
         {
             for (i = 9; i >= 0; i--)
@@ -3856,35 +3856,35 @@ static int python2Present()
                 sprintf(gPython2Name, "python2.%d", i);
                 if (detectPresence(gPython2Name))
                 {
-                    lPython2Present = 1;
+                    ret = 1;
                     break;
                 }
             }
-            /*if ( ! lPython2Present )
-                        {
-                                strcpy(gPython2Name , "python" ) ;
-                                if ( detectPresence(gPython2Name) ) lPython2Present = 1;
-                        }*/
+            /*if ( ! ret )
+            {
+                strcpy(gPython2Name , "python" ) ;
+                if ( detectPresence(gPython2Name) ) ret = 1;
+            }*/
         }
         if (tinyfd_verbose)
-            printf("lPython2Present %d\n", lPython2Present);
+            printf("python2Present %d\n", ret);
         if (tinyfd_verbose)
             printf("gPython2Name %s\n", gPython2Name);
     }
-    return lPython2Present;
+    return ret;
 }
 
 static int python3Present()
 {
-    static int lPython3Present = -1;
+    static int ret = -1;
     int i;
 
-    if (lPython3Present < 0)
+    if (ret < 0)
     {
-        lPython3Present = 0;
+        ret = 0;
         strcpy(gPython3Name, "python3");
         if (detectPresence(gPython3Name))
-            lPython3Present = 1;
+            ret = 1;
         else
         {
             for (i = 9; i >= 0; i--)
@@ -3892,98 +3892,98 @@ static int python3Present()
                 sprintf(gPython3Name, "python3.%d", i);
                 if (detectPresence(gPython3Name))
                 {
-                    lPython3Present = 1;
+                    ret = 1;
                     break;
                 }
             }
-            /*if ( ! lPython3Present )
-                        {
-                                strcpy(gPython3Name , "python" ) ;
-                                if ( detectPresence(gPython3Name) ) lPython3Present = 1;
-                        }*/
+            /*if ( ! ret )
+            {
+                strcpy(gPython3Name , "python" ) ;
+                if ( detectPresence(gPython3Name) ) ret = 1;
+            }*/
         }
         if (tinyfd_verbose)
-            printf("lPython3Present %d\n", lPython3Present);
+            printf("python3Present %d\n", ret);
         if (tinyfd_verbose)
             printf("gPython3Name %s\n", gPython3Name);
     }
-    return lPython3Present;
+    return ret;
 }
 
 static int tkinter2Present()
 {
-    static int lTkinter2Present = -1;
+    static int ret = -1;
     char lPythonCommand[256];
     char lPythonParams[256] =
         "-S -c \"try:\n\timport Tkinter;\nexcept:\n\tprint 0;\"";
 
-    if (lTkinter2Present < 0)
+    if (ret < 0)
     {
-        lTkinter2Present = 0;
+        ret = 0;
         if (python2Present())
         {
             sprintf(lPythonCommand, "%s %s", gPython2Name, lPythonParams);
-            lTkinter2Present = tryCommand(lPythonCommand);
+            ret = tryCommand(lPythonCommand);
         }
         if (tinyfd_verbose)
-            printf("lTkinter2Present %d\n", lTkinter2Present);
+            printf("tkinter2Present %d\n", ret);
     }
-    return lTkinter2Present && graphicMode() && !(isDarwin() && getenv("SSH_TTY"));
+    return ret && graphicMode() && !(isDarwin() && getenv("SSH_TTY"));
 }
 
 static int tkinter3Present()
 {
-    static int lTkinter3Present = -1;
+    static int ret = -1;
     char lPythonCommand[256];
     char lPythonParams[256] =
         "-S -c \"try:\n\timport tkinter;\nexcept:\n\tprint(0);\"";
 
-    if (lTkinter3Present < 0)
+    if (ret < 0)
     {
-        lTkinter3Present = 0;
+        ret = 0;
         if (python3Present())
         {
             sprintf(lPythonCommand, "%s %s", gPython3Name, lPythonParams);
-            lTkinter3Present = tryCommand(lPythonCommand);
+            ret = tryCommand(lPythonCommand);
         }
         if (tinyfd_verbose)
-            printf("lTkinter3Present %d\n", lTkinter3Present);
+            printf("tkinter3Present %d\n", ret);
     }
-    return lTkinter3Present && graphicMode() && !(isDarwin() && getenv("SSH_TTY"));
+    return ret && graphicMode() && !(isDarwin() && getenv("SSH_TTY"));
 }
 
 static int pythonDbusPresent()
 {
-    static int lDbusPresent = -1;
+    static int ret = -1;
     char lPythonCommand[256];
     char lPythonParams[256] =
         "-c \"try:\n\timport dbus;bus=dbus.SessionBus();\
 notif=bus.get_object('org.freedesktop.Notifications','/org/freedesktop/Notifications');\
 notify=dbus.Interface(notif,'org.freedesktop.Notifications');\nexcept:\n\tprint(0);\"";
 
-    if (lDbusPresent < 0)
+    if (ret < 0)
     {
-        lDbusPresent = 0;
+        ret = 0;
         if (python2Present())
         {
             strcpy(gPythonName, gPython2Name);
             sprintf(lPythonCommand, "%s %s", gPythonName, lPythonParams);
-            lDbusPresent = tryCommand(lPythonCommand);
+            ret = tryCommand(lPythonCommand);
         }
 
-        if (!lDbusPresent && python3Present())
+        if (!ret && python3Present())
         {
             strcpy(gPythonName, gPython3Name);
             sprintf(lPythonCommand, "%s %s", gPythonName, lPythonParams);
-            lDbusPresent = tryCommand(lPythonCommand);
+            ret = tryCommand(lPythonCommand);
         }
 
         if (tinyfd_verbose)
-            printf("lDbusPresent %d\n", lDbusPresent);
+            printf("dbusPresent %d\n", ret);
         if (tinyfd_verbose)
             printf("gPythonName %s\n", gPythonName);
     }
-    return lDbusPresent && graphicMode() && !(isDarwin() && getenv("SSH_TTY"));
+    return ret && graphicMode() && !(isDarwin() && getenv("SSH_TTY"));
 }
 
 static void sigHandler(int sig)
