@@ -853,7 +853,7 @@ wchar* utf8to16(const char* aUtf8string)
 {
     wchar* lUtf16string;
     int lSize = sizeUtf16(aUtf8string);
-    lUtf16string = (wchar*)malloc(lSize * sizeof(wchar));
+    lUtf16string = (wchar*)malloc(lSize * wchar.sizeof);
     lSize = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
                                 aUtf8string, -1, lUtf16string, lSize);
     if (lSize == 0)
@@ -868,7 +868,7 @@ wchar* mbcsTo16(const char* aMbcsString)
 {
     wchar* lMbcsString;
     int lSize = sizeUtf16(aMbcsString);
-    lMbcsString = (wchar*)malloc(lSize * sizeof(wchar));
+    lMbcsString = (wchar*)malloc(lSize * wchar.sizeof);
     lSize = MultiByteToWideChar(CP_ACP, 0,
                                 aMbcsString, -1, lMbcsString, lSize);
     if (lSize == 0)
@@ -1058,8 +1058,8 @@ void hiddenConsoleW(const wchar* aString, const wchar* aDialogTitle, const int a
     if (!aString || !wcslen(aString))
         return;
 
-    memset(&StartupInfo, 0, sizeof(StartupInfo));
-    StartupInfo.cb = sizeof(STARTUPINFOW);
+    memset(&StartupInfo, 0, StartupInfo.sizeof);
+    StartupInfo.cb = STARTUPINFOW.sizeof;
     StartupInfo.dwFlags = STARTF_USESHOWWINDOW;
     StartupInfo.wShowWindow = SW_HIDE;
 
@@ -1638,7 +1638,7 @@ const(wchar)* tinyfd_saveFileDialogW(
         }
     }
 
-    ofn.lStructSize = sizeof(OPENFILENAMEW);
+    ofn.lStructSize = OPENFILENAMEW.sizeof;
     ofn.hwndOwner = GetForegroundWindow();
     ofn.hInstance = 0;
     ofn.lpstrFilter = lFilterPatterns && wcslen(lFilterPatterns) ? lFilterPatterns : null;
@@ -1692,7 +1692,7 @@ const(char)* saveFileDialogWinGui8(
     char* lTmpChar;
     int i;
 
-    lFilterPatterns = (wchar**)malloc(aNumOfFilterPatterns * sizeof(wchar*));
+    lFilterPatterns = (wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
     for (i = 0; i < aNumOfFilterPatterns; i++)
     {
         lFilterPatterns[i] = utf8to16(aFilterPatterns[i]);
@@ -1791,7 +1791,7 @@ const(wchar)* tinyfd_openFileDialogW(
         }
     }
 
-    ofn.lStructSize = sizeof(OPENFILENAME);
+    ofn.lStructSize = OPENFILENAME.sizeof;
     ofn.hwndOwner = GetForegroundWindow();
     ofn.hInstance = 0;
     ofn.lpstrFilter = lFilterPatterns && wcslen(lFilterPatterns) ? lFilterPatterns : null;
@@ -1844,11 +1844,11 @@ const(wchar)* tinyfd_openFileDialogW(
             for (j = i; j >= 0; j--)
             {
                 p -= lLengths[j];
-                memmove(p, lPointers[j], lLengths[j] * sizeof(wchar));
+                memmove(p, lPointers[j], lLengths[j] * wchar.sizeof);
                 p--;
                 *p = L'\\';
                 p -= lBuffLen;
-                memmove(p, lBuff, lBuffLen * sizeof(wchar));
+                memmove(p, lBuff, lBuffLen * wchar.sizeof);
                 p--;
                 *p = L'|';
             }
@@ -1881,7 +1881,7 @@ const(char)* openFileDialogWinGui8(
     char* lTmpChar;
     int i;
 
-    lFilterPatterns = (wchar**)malloc(aNumOfFilterPatterns * sizeof(wchar*));
+    lFilterPatterns = (wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
     for (i = 0; i < aNumOfFilterPatterns; i++)
     {
         lFilterPatterns[i] = utf8to16(aFilterPatterns[i]);
@@ -2038,7 +2038,7 @@ const(wchar)* tinyfd_colorChooserW(
     }
 
     /* we can't use aTitle */
-    cc.lStructSize = sizeof(CHOOSECOLOR);
+    cc.lStructSize = CHOOSECOLOR.sizeof;
     cc.hwndOwner = GetForegroundWindow();
     cc.hInstance = null;
     cc.rgbResult = RGB(lDefaultRGB[0], lDefaultRGB[1], lDefaultRGB[2]);
@@ -2119,7 +2119,7 @@ int dialogPresent()
             lDialogPresent = 0;
             return 0;
         }
-        while (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+        while (fgets(lBuff, lBuff.sizeof, lIn) !is null)
         {
         }
         _pclose(lIn);
@@ -2228,7 +2228,7 @@ int messageBoxWinConsole(
         remove(lDialogFile);
         return 0;
     }
-    while (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+    while (fgets(lBuff, lBuff.sizeof, lIn) !is null)
     {
     }
     fclose(lIn);
@@ -3019,7 +3019,7 @@ int detectPresence(const char* aExecutable)
     strcat(lTestedString, aExecutable);
     strcat(lTestedString, " 2>/dev/null ");
     lIn = popen(lTestedString, "r");
-    if ((fgets(lBuff, sizeof(lBuff), lIn) !is null) && (!strchr(lBuff, ':')) && (strncmp(lBuff, "no ", 3)))
+    if ((fgets(lBuff, lBuff.sizeof, lIn) !is null) && (!strchr(lBuff, ':')) && (strncmp(lBuff, "no ", 3)))
     { /* present */
         pclose(lIn);
         if (tinyfd_verbose)
@@ -3046,7 +3046,7 @@ const(char)* getVersion(const char* aExecutable) /*version must be first numeral
     strcat(lTestedString, " --version");
 
     lIn = popen(lTestedString, "r");
-    lTmp = fgets(lBuff, sizeof(lBuff), lIn);
+    lTmp = fgets(lBuff, lBuff.sizeof, lIn);
     pclose(lIn);
 
     lTmp += strcspn(lTmp, "0123456789");
@@ -3078,7 +3078,7 @@ int tryCommand(const char* aCommand)
     FILE *lIn;
 
     lIn = popen(aCommand, "r");
-    if (fgets(lBuff, sizeof(lBuff), lIn) == null)
+    if (fgets(lBuff, lBuff.sizeof, lIn) == null)
     { /* present */
         pclose(lIn);
         return 1;
@@ -3407,7 +3407,7 @@ int perlPresent()
         if (ret)
         {
             lIn = popen("perl -MNet::DBus -e \"Net::DBus->session->get_service('org.freedesktop.Notifications')\" 2>&1", "r");
-            if (fgets(lBuff, sizeof(lBuff), lIn) == null)
+            if (fgets(lBuff, lBuff.sizeof, lIn) == null)
             {
                 ret = 2;
             }
@@ -3431,7 +3431,7 @@ int afplayPresent()
         if (ret)
         {
             lIn = popen("test -e /System/Library/Sounds/Ping.aiff || echo Ping", "r");
-            if (fgets(lBuff, sizeof(lBuff), lIn) == null)
+            if (fgets(lBuff, lBuff.sizeof, lIn) == null)
             {
                 ret = 2;
             }
@@ -3527,7 +3527,7 @@ int zenity3Present()
         if (zenityPresent())
         {
             lIn = popen("zenity --version", "r");
-            if (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+            if (fgets(lBuff, lBuff.sizeof, lIn) !is null)
             {
                 if (atoi(lBuff) >= 3)
                 {
@@ -3578,7 +3578,7 @@ int kdialogPresent()
         if (ret && !getenv("SSH_TTY"))
         {
             lIn = popen("kdialog --attach 2>&1", "r");
-            if (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+            if (fgets(lBuff, lBuff.sizeof, lIn) !is null)
             {
                 if (!strstr("Unknown", lBuff))
                 {
@@ -3593,7 +3593,7 @@ int kdialogPresent()
             {
                 ret = 1;
                 lIn = popen("kdialog --passivepopup 2>&1", "r");
-                if (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+                if (fgets(lBuff, lBuff.sizeof, lIn) !is null)
                 {
                     if (!strstr("Unknown", lBuff))
                     {
@@ -3620,7 +3620,7 @@ int osx9orBetter()
     {
         ret = 0;
         lIn = popen("osascript -e 'set osver to system version of (system info)'", "r");
-        if ((fgets(lBuff, sizeof(lBuff), lIn) !is null) && (2 == sscanf(lBuff, "%d.%d", &V, &v)))
+        if ((fgets(lBuff, lBuff.sizeof, lIn) !is null) && (2 == sscanf(lBuff, "%d.%d", &V, &v)))
         {
             V = V * 100 + v;
             if (V >= 1009)
@@ -4863,7 +4863,7 @@ else:
         free(str);
         return 0;
     }
-    while (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+    while (fgets(lBuff, lBuff.sizeof, lIn) !is null)
     {
     }
 
@@ -5714,7 +5714,7 @@ const(char)* tinyfd_inputBox(
         free(str);
         return null;
     }
-    while (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+    while (fgets(lBuff, lBuff.sizeof, lIn) !is null)
     {
     }
 
@@ -6195,7 +6195,7 @@ const(char)* tinyfd_saveFileDialog(
     {
         return null;
     }
-    while (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+    while (fgets(lBuff, lBuff.sizeof, lIn) !is null)
     {
     }
     pclose(lIn);
@@ -6719,7 +6719,7 @@ else:
     }
     lBuff[0] = '\0';
     p = lBuff;
-    while (fgets(p, sizeof(lBuff), lIn) !is null)
+    while (fgets(p, lBuff.sizeof, lIn) !is null)
     {
         p += strlen(p);
     }
@@ -7061,7 +7061,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
     {
         return null;
     }
-    while (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+    while (fgets(lBuff, lBuff.sizeof, lIn) !is null)
     {
     }
     pclose(lIn);
@@ -7347,7 +7347,7 @@ if res[1] is not None:
     {
         return null;
     }
-    while (fgets(lBuff, sizeof(lBuff), lIn) !is null)
+    while (fgets(lBuff, lBuff.sizeof, lIn) !is null)
     {
     }
     pclose(lIn);
