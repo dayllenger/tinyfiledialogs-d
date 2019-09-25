@@ -1037,7 +1037,7 @@ const(char)* ensureFilesExist(char* aDestination, const char* aSourcePathsAndNam
 #ifdef _WIN32
 #ifndef TINYFD_NOLIB
 
-int __stdcall EnumThreadWndProc(HWND hwnd, LPARAM lParam)
+extern (Windows) int EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 {
     wchar lTitleName[MAX_PATH];
     GetWindowTextW(hwnd, lTitleName, MAX_PATH);
@@ -1922,7 +1922,7 @@ const(char)* openFileDialogWinGui8(
 }
 
 #ifndef TINYFD_NOSELECTFOLDERWIN
-int __stdcall BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
+extern (Windows) int BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
 {
     if (uMsg == BFFM_INITIALIZED)
     {
