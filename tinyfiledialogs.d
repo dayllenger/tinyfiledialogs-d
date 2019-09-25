@@ -1084,11 +1084,11 @@ void hiddenConsoleW(const wchar* aString, const wchar* aDialogTitle, const int a
 }
 
 int tinyfd_messageBoxW(
-    const wchar* aTitle,      /* null or "" */
-    const wchar* aMessage,    /* null or ""  may contain \n and \t */
-    const wchar* aDialogType, /* "ok" "okcancel" "yesno" "yesnocancel" */
-    const wchar* aIconType,   /* "info" "warning" "error" "question" */
-    const int aDefaultButton) /* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
+    const wchar* aTitle,
+    const wchar* aMessage,
+    const wchar* aDialogType,
+    const wchar* aIconType,
+    const int aDefaultButton)
 {
     int lBoxReturnValue;
     UINT aCode;
@@ -1151,11 +1151,11 @@ int tinyfd_messageBoxW(
 }
 
 int messageBoxWinGui8(
-    const char* aTitle,       /* null or "" */
-    const char* aMessage,     /* null or ""  may contain \n and \t */
-    const char* aDialogType,  /* "ok" "okcancel" "yesno" "yesnocancel" */
-    const char* aIconType,    /* "info" "warning" "error" "question" */
-    const int aDefaultButton) /* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aDialogType,
+    const char* aIconType,
+    const int aDefaultButton)
 {
     int lIntRetVal;
     wchar* lTitle;
@@ -1179,11 +1179,10 @@ int messageBoxWinGui8(
     return lIntRetVal;
 }
 
-/* return has only meaning for tinyfd_query */
 int tinyfd_notifyPopupW(
-    const wchar* aTitle,    /* null or L"" */
-    const wchar* aMessage,  /* null or L"" may contain \n \t */
-    const wchar* aIconType) /* L"info" L"warning" L"error" */
+    const wchar* aTitle,
+    const wchar* aMessage,
+    const wchar* aIconType)
 {
     wchar* str;
     size_t lTitleLen;
@@ -1273,9 +1272,9 @@ int notifyWinGui(
 }
 
 const(wchar)* tinyfd_inputBoxW(
-    const wchar* aTitle,        /* null or L"" */
-    const wchar* aMessage,      /* null or L"" may NOT contain \n nor \t */
-    const wchar* aDefaultInput) /* L"" , if null it's a passwordBox */
+    const wchar* aTitle,
+    const wchar* aMessage,
+    const wchar* aDefaultInput)
 {
     static wchar lBuff[MAX_PATH_OR_CMD];
     wchar* str;
@@ -1551,9 +1550,9 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
 
 const(char)* inputBoxWinGui(
     char* aoBuff,
-    const char* aTitle,        /* null or "" */
-    const char* aMessage,      /* null or "" may NOT contain \n nor \t */
-    const char* aDefaultInput) /* "" , if null it's a passwordBox */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aDefaultInput)
 {
     wchar* lTitle;
     wchar* lMessage;
@@ -1584,11 +1583,11 @@ const(char)* inputBoxWinGui(
 }
 
 const(wchar)* tinyfd_saveFileDialogW(
-    const wchar* aTitle,                   /* null or "" */
-    const wchar* aDefaultPathAndFile,      /* null or "" */
-    const int aNumOfFilterPatterns,        /* 0 */
-    const wchar** aFilterPatterns,         /* null or {"*.jpg","*.png"} */
-    const wchar* aSingleFilterDescription) /* null or "image files" */
+    const wchar* aTitle,
+    const wchar* aDefaultPathAndFile,
+    const int aNumOfFilterPatterns,
+    const wchar** aFilterPatterns,
+    const wchar* aSingleFilterDescription)
 {
     static wchar lBuff[MAX_PATH_OR_CMD];
     wchar lDirname[MAX_PATH_OR_CMD];
@@ -1679,11 +1678,11 @@ const(wchar)* tinyfd_saveFileDialogW(
 
 const(char)* saveFileDialogWinGui8(
     char* aoBuff,
-    const char* aTitle,                   /* null or "" */
-    const char* aDefaultPathAndFile,      /* null or "" */
-    const int aNumOfFilterPatterns,       /* 0 */
-    const char** aFilterPatterns,         /* null or {"*.jpg","*.png"} */
-    const char* aSingleFilterDescription) /* null or "image files" */
+    const char* aTitle,
+    const char* aDefaultPathAndFile,
+    const int aNumOfFilterPatterns,
+    const char** aFilterPatterns,
+    const char* aSingleFilterDescription)
 {
     wchar* lTitle;
     wchar* lDefaultPathAndFile;
@@ -1733,12 +1732,12 @@ const(char)* saveFileDialogWinGui8(
 }
 
 const(wchar)* tinyfd_openFileDialogW(
-    const wchar* aTitle,                   /* null or "" */
-    const wchar* aDefaultPathAndFile,      /* null or "" */
-    const int aNumOfFilterPatterns,        /* 0 */
-    const wchar** aFilterPatterns,         /* null or {"*.jpg","*.png"} */
-    const wchar* aSingleFilterDescription, /* null or "image files" */
-    const int aAllowMultipleSelects)       /* 0 or 1 */
+    const wchar* aTitle,
+    const wchar* aDefaultPathAndFile,
+    const int aNumOfFilterPatterns,
+    const wchar** aFilterPatterns,
+    const wchar* aSingleFilterDescription,
+    const int aAllowMultipleSelects)
 {
     static wchar lBuff[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD];
 
@@ -1867,12 +1866,12 @@ const(wchar)* tinyfd_openFileDialogW(
 
 const(char)* openFileDialogWinGui8(
     char* aoBuff,
-    const char* aTitle,                   /* null or "" */
-    const char* aDefaultPathAndFile,      /* null or "" */
-    const int aNumOfFilterPatterns,       /* 0 */
-    const char** aFilterPatterns,         /* null or {"*.jpg","*.png"} */
-    const char* aSingleFilterDescription, /* null or "image files" */
-    const int aAllowMultipleSelects)      /* 0 or 1 */
+    const char* aTitle,
+    const char* aDefaultPathAndFile,
+    const int aNumOfFilterPatterns,
+    const char** aFilterPatterns,
+    const char* aSingleFilterDescription,
+    const int aAllowMultipleSelects)
 {
     wchar* lTitle;
     wchar* lDefaultPathAndFile;
@@ -1932,9 +1931,7 @@ int __stdcall BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
     return 0;
 }
 
-const(wchar)* tinyfd_selectFolderDialogW(
-    const wchar* aTitle,       /* null or "" */
-    const wchar* aDefaultPath) /* null or "" */
+const(wchar)* tinyfd_selectFolderDialogW(const wchar* aTitle, const wchar* aDefaultPath)
 {
     static wchar lBuff[MAX_PATH_OR_CMD];
 
@@ -1977,8 +1974,8 @@ const(wchar)* tinyfd_selectFolderDialogW(
 
 const(char)* selectFolderDialogWinGui8(
     char* aoBuff,
-    const char* aTitle,       /* null or "" */
-    const char* aDefaultPath) /* null or "" */
+    const char* aTitle,
+    const char* aDefaultPath)
 {
     wchar* lTitle;
     wchar* lDefaultPath;
@@ -2008,10 +2005,10 @@ const(char)* selectFolderDialogWinGui8(
 #endif /*TINYFD_NOSELECTFOLDERWIN*/
 
 const(wchar)* tinyfd_colorChooserW(
-    const wchar* aTitle,         /* null or "" */
-    const wchar* aDefaultHexRGB, /* null or "#FF0000"*/
-    ubyte const aDefaultRGB[3],  /* { 0 , 255 , 255 } */
-    ubyte aoResultRGB[3])        /* { 0 , 0 , 0 } */
+    const wchar* aTitle,
+    const wchar* aDefaultHexRGB,
+    ubyte const aDefaultRGB[3],
+    ubyte aoResultRGB[3])
 {
     static wchar lResultHexRGB[8];
     CHOOSECOLORW cc;
@@ -2073,10 +2070,10 @@ const(wchar)* tinyfd_colorChooserW(
 }
 
 const(char)* colorChooserWinGui8(
-    const char* aTitle,           /* null or "" */
-    const char* aDefaultHexRGB,   /* null or "#FF0000"*/
-    ubyte const aDefaultRGB[3], /* { 0 , 255 , 255 } */
-    ubyte aoResultRGB[3])       /* { 0 , 0 , 0 } */
+    const char* aTitle,
+    const char* aDefaultHexRGB,
+    ubyte const aDefaultRGB[3],
+    ubyte aoResultRGB[3])
 {
     static char lResultHexRGB[8];
 
@@ -2143,11 +2140,11 @@ int dialogPresent()
 }
 
 int messageBoxWinConsole(
-    const char* aTitle,       /* null or "" */
-    const char* aMessage,     /* null or ""  may contain \n and \t */
-    const char* aDialogType,  /* "ok" "okcancel" "yesno" "yesnocancel" */
-    const char* aIconType,    /* "info" "warning" "error" "question" */
-    const int aDefaultButton) /* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aDialogType,
+    const char* aIconType,
+    const int aDefaultButton)
 {
     char str[MAX_PATH_OR_CMD];
     char lDialogFile[MAX_PATH_OR_CMD];
@@ -2260,9 +2257,9 @@ int messageBoxWinConsole(
 
 const(char)* inputBoxWinConsole(
     char* aoBuff,
-    const char* aTitle,        /* null or "" */
-    const char* aMessage,      /* null or "" may NOT contain \n nor \t */
-    const char* aDefaultInput) /* "" , if null it's a passwordBox */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aDefaultInput)
 {
     char str[MAX_PATH_OR_CMD];
     char lDialogFile[MAX_PATH_OR_CMD];
@@ -2354,8 +2351,8 @@ const(char)* inputBoxWinConsole(
 
 const(char)* saveFileDialogWinConsole(
     char* aoBuff,
-    const char* aTitle,              /* null or "" */
-    const char* aDefaultPathAndFile) /* null or "" */
+    const char* aTitle,
+    const char* aDefaultPathAndFile)
 {
     char str[MAX_PATH_OR_CMD];
     char lPathAndFile[MAX_PATH_OR_CMD] = "";
@@ -2418,9 +2415,9 @@ const(char)* saveFileDialogWinConsole(
 
 const(char)* openFileDialogWinConsole(
     char* aoBuff,
-    const char* aTitle,              /* null or "" */
-    const char* aDefaultPathAndFile, /* null or "" */
-    const int aAllowMultipleSelects) /* 0 or 1 */
+    const char* aTitle,
+    const char* aDefaultPathAndFile,
+    const int aAllowMultipleSelects)
 {
     char lFilterPatterns[MAX_PATH_OR_CMD] = "";
     char str[MAX_PATH_OR_CMD];
@@ -2478,8 +2475,8 @@ const(char)* openFileDialogWinConsole(
 
 const(char)* selectFolderDialogWinConsole(
     char* aoBuff,
-    const char* aTitle,       /* null or "" */
-    const char* aDefaultPath) /* null or "" */
+    const char* aTitle,
+    const char* aDefaultPath)
 {
     char str[MAX_PATH_OR_CMD];
     char lString[MAX_PATH_OR_CMD];
@@ -2536,11 +2533,11 @@ const(char)* selectFolderDialogWinConsole(
 }
 
 int tinyfd_messageBox(
-    const char* aTitle,       /* null or "" */
-    const char* aMessage,     /* null or ""  may contain \n and \t */
-    const char* aDialogType,  /* "ok" "okcancel" "yesno" "yesnocancel" */
-    const char* aIconType,    /* "info" "warning" "error" "question" */
-    const int aDefaultButton) /* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aDialogType,
+    const char* aIconType,
+    const int aDefaultButton)
 {
     char lChar;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
@@ -2641,11 +2638,10 @@ int tinyfd_messageBox(
     }
 }
 
-/* return has only meaning for tinyfd_query */
 int tinyfd_notifyPopup(
-    const char* aTitle,    /* null or "" */
-    const char* aMessage,  /* null or "" may contain \n \t */
-    const char* aIconType) /* "info" "warning" "error" */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aIconType)
 {
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
 
@@ -2669,11 +2665,10 @@ int tinyfd_notifyPopup(
     }
 }
 
-/* returns null on cancel */
 const(char)* tinyfd_inputBox(
-    const char* aTitle,        /* null or "" */
-    const char* aMessage,      /* null or "" may NOT contain \n nor \t */
-    const char* aDefaultInput) /* "" , if null it's a passwordBox */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aDefaultInput)
 {
     static char lBuff[MAX_PATH_OR_CMD];
     char* lEOF;
@@ -2764,11 +2759,11 @@ const(char)* tinyfd_inputBox(
 }
 
 const(char)* tinyfd_saveFileDialog(
-    const char* aTitle,                   /* null or "" */
-    const char* aDefaultPathAndFile,      /* null or "" */
-    const int aNumOfFilterPatterns,       /* 0 */
-    const char** aFilterPatterns,         /* null or {"*.jpg","*.png"} */
-    const char* aSingleFilterDescription) /* null or "image files" */
+    const char* aTitle,
+    const char* aDefaultPathAndFile,
+    const int aNumOfFilterPatterns,
+    const char** aFilterPatterns,
+    const char* aSingleFilterDescription)
 {
     static char lBuff[MAX_PATH_OR_CMD];
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
@@ -2824,14 +2819,13 @@ const(char)* tinyfd_saveFileDialog(
     return p;
 }
 
-/* in case of multiple files, the separator is | */
 const(char)* tinyfd_openFileDialog(
-    const char* aTitle,                   /* null or "" */
-    const char* aDefaultPathAndFile,      /* null or "" */
-    const int aNumOfFilterPatterns,       /* 0 */
-    const char** aFilterPatterns,         /* null or {"*.jpg","*.png"} */
-    const char* aSingleFilterDescription, /* null or "image files" */
-    const int aAllowMultipleSelects)      /* 0 or 1 */
+    const char* aTitle,
+    const char* aDefaultPathAndFile,
+    const int aNumOfFilterPatterns,
+    const char** aFilterPatterns,
+    const char* aSingleFilterDescription,
+    const int aAllowMultipleSelects)
 {
     static char lBuff[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD];
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
@@ -2886,9 +2880,7 @@ const(char)* tinyfd_openFileDialog(
     return p;
 }
 
-const(char)* tinyfd_selectFolderDialog(
-    const char* aTitle,       /* null or "" */
-    const char* aDefaultPath) /* null or "" */
+const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
     static char lBuff[MAX_PATH_OR_CMD];
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
@@ -2933,15 +2925,11 @@ const(char)* tinyfd_selectFolderDialog(
     return p;
 }
 
-/* returns the hexcolor as a string "#FF0000" */
-/* aoResultRGB also contains the result */
-/* aDefaultRGB is used only if aDefaultHexRGB is null */
-/* aDefaultRGB and aoResultRGB can be the same array */
 const(char)* tinyfd_colorChooser(
-    const char* aTitle,           /* null or "" */
-    const char* aDefaultHexRGB,   /* null or "#FF0000"*/
-    ubyte const aDefaultRGB[3], /* { 0 , 255 , 255 } */
-    ubyte aoResultRGB[3])       /* { 0 , 0 , 0 } */
+    const char* aTitle,
+    const char* aDefaultHexRGB,
+    ubyte const aDefaultRGB[3],
+    ubyte aoResultRGB[3])
 {
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char lDefaultHexRGB[8];
@@ -3855,11 +3843,11 @@ void tinyfd_beep()
 }
 
 int tinyfd_messageBox(
-    const char* aTitle,       /* null or "" */
-    const char* aMessage,     /* null or ""  may contain \n and \t */
-    const char* aDialogType,  /* "ok" "okcancel" "yesno" "yesnocancel" */
-    const char* aIconType,    /* "info" "warning" "error" "question" */
-    const int aDefaultButton) /* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aDialogType,
+    const char* aIconType,
+    const int aDefaultButton)
 {
     char lBuff[MAX_PATH_OR_CMD];
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
@@ -4891,11 +4879,10 @@ tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
     return lResult;
 }
 
-/* return has only meaning for tinyfd_query */
 int tinyfd_notifyPopup(
-    const char* aTitle,    /* null or "" */
-    const char* aMessage,  /* null or ""  may contain \n and \t */
-    const char* aIconType) /* "info" "warning" "error" */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aIconType)
 {
     char lBuff[MAX_PATH_OR_CMD];
     char* str = null;
@@ -5130,11 +5117,10 @@ int tinyfd_notifyPopup(
     return 1;
 }
 
-/* returns null on cancel */
 const(char)* tinyfd_inputBox(
-    const char* aTitle,        /* null or "" */
-    const char* aMessage,      /* null or "" may NOT contain \n nor \t */
-    const char* aDefaultInput) /* "" , if null it's a passwordBox */
+    const char* aTitle,
+    const char* aMessage,
+    const char* aDefaultInput)
 {
     static char lBuff[MAX_PATH_OR_CMD];
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
@@ -5759,11 +5745,11 @@ frontmost of process \\\"Python\\\" to true' ''');");
 }
 
 const(char)* tinyfd_saveFileDialog(
-    const char* aTitle,                   /* null or "" */
-    const char* aDefaultPathAndFile,      /* null or "" */
-    const int aNumOfFilterPatterns,       /* 0 */
-    const char** aFilterPatterns,         /* null or {"*.jpg","*.png"} */
-    const char* aSingleFilterDescription) /* null or "image files" */
+    const char* aTitle,
+    const char* aDefaultPathAndFile,
+    const int aNumOfFilterPatterns,
+    const char** aFilterPatterns,
+    const char* aSingleFilterDescription)
 {
     static char lBuff[MAX_PATH_OR_CMD];
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
@@ -6219,14 +6205,13 @@ const(char)* tinyfd_saveFileDialog(
     return lBuff;
 }
 
-/* in case of multiple files, the separator is | */
 const(char)* tinyfd_openFileDialog(
-    const char* aTitle,                   /* null or "" */
-    const char* aDefaultPathAndFile,      /* null or "" */
-    const int aNumOfFilterPatterns,       /* 0 */
-    const char** aFilterPatterns,         /* null or {"*.jpg","*.png"} */
-    const char* aSingleFilterDescription, /* null or "image files" */
-    const int aAllowMultipleSelects)      /* 0 or 1 */
+    const char* aTitle,
+    const char* aDefaultPathAndFile,
+    const int aNumOfFilterPatterns,
+    const char** aFilterPatterns,
+    const char* aSingleFilterDescription,
+    const int aAllowMultipleSelects)
 {
     static char lBuff[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD];
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
@@ -6746,9 +6731,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
     return p2;
 }
 
-const(char)* tinyfd_selectFolderDialog(
-    const char* aTitle,       /* "" */
-    const char* aDefaultPath) /* "" */
+const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
     static char lBuff[MAX_PATH_OR_CMD];
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
@@ -7068,15 +7051,11 @@ frontmost of process \\\"Python\\\" to true' ''');");
     return lBuff;
 }
 
-/* returns the hexcolor as a string "#FF0000" */
-/* aoResultRGB also contains the result */
-/* aDefaultRGB is used only if aDefaultHexRGB is null */
-/* aDefaultRGB and aoResultRGB can be the same array */
 const(char)* tinyfd_colorChooser(
-    const char* aTitle,           /* null or "" */
-    const char* aDefaultHexRGB,   /* null or "#FF0000"*/
-    ubyte const aDefaultRGB[3], /* { 0 , 255 , 255 } */
-    ubyte aoResultRGB[3])       /* { 0 , 0 , 0 } */
+    const char* aTitle,
+    const char* aDefaultHexRGB,
+    ubyte const aDefaultRGB[3],
+    ubyte aoResultRGB[3])
 {
     static char lBuff[128];
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
