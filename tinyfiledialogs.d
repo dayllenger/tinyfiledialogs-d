@@ -417,12 +417,12 @@ immutable char[] gTitle = "missing software! (we will try basic console input)";
 /+
 #define SOME(str) ((str) !is null && (str)[0] != '\0')
 
-static void response(const char* message)
+void response(const char* message)
 {
     strcpy(tinyfd_response, message);
 }
 
-static char* getPathWithoutFinalSlash(
+char* getPathWithoutFinalSlash(
     char* aoDestination, /* make sure it is allocated, use _MAX_PATH */
     const char* aSource) /* aoDestination and aSource can be the same */
 {
@@ -451,7 +451,7 @@ static char* getPathWithoutFinalSlash(
     return aoDestination;
 }
 
-static char* getLastName(
+char* getLastName(
     char* aoDestination, /* make sure it is allocated */
     const char* aSource)
 {
@@ -480,7 +480,7 @@ static char* getLastName(
     return aoDestination;
 }
 
-static void ensureFinalSlash(char* aioString)
+void ensureFinalSlash(char* aioString)
 {
     if (SOME(aioString))
     {
@@ -492,8 +492,7 @@ static void ensureFinalSlash(char* aioString)
     }
 }
 
-static void Hex2RGB(char const aHexRGB[8],
-                    ubyte aoResultRGB[3])
+void Hex2RGB(const char aHexRGB[8], ubyte aoResultRGB[3])
 {
     char lColorChannel[8];
     if (aoResultRGB)
@@ -517,8 +516,7 @@ static void Hex2RGB(char const aHexRGB[8],
     }
 }
 
-static void RGB2Hex(ubyte const aRGB[3],
-                    char aoResultHexRGB[8])
+void RGB2Hex(ubyte const aRGB[3], char aoResultHexRGB[8])
 {
     if (aoResultHexRGB)
     {
@@ -541,10 +539,10 @@ static void RGB2Hex(ubyte const aRGB[3],
     }
 }
 
-static void replaceSubStr(const char* aSource,
-                          const char* aOldSubStr,
-                          const char* aNewSubStr,
-                          char* aoDestination)
+void replaceSubStr(const char* aSource,
+                   const char* aOldSubStr,
+                   const char* aNewSubStr,
+                   char* aoDestination)
 {
     const(char)* pOccurence;
     const(char)* p;
@@ -576,7 +574,7 @@ static void replaceSubStr(const char* aSource,
     strcat(aoDestination, p);
 }
 
-static int filenameValid(const char* aFileNameWithoutPath)
+int filenameValid(const char* aFileNameWithoutPath)
 {
     if (!aFileNameWithoutPath || !strlen(aFileNameWithoutPath) || strpbrk(aFileNameWithoutPath, "\\/:*?\"<>|"))
     {
@@ -587,7 +585,7 @@ static int filenameValid(const char* aFileNameWithoutPath)
 
 #ifndef _WIN32
 
-static int fileExists(const char* aFilePathAndName)
+int fileExists(const char* aFilePathAndName)
 {
     FILE *lIn;
     if (!aFilePathAndName || !strlen(aFilePathAndName))
@@ -605,7 +603,7 @@ static int fileExists(const char* aFilePathAndName)
 
 #elif defined(TINYFD_NOLIB)
 
-static int fileExists(const char* aFilePathAndName)
+int fileExists(const char* aFilePathAndName)
 {
     FILE *lIn;
     if (!aFilePathAndName || !strlen(aFilePathAndName))
@@ -627,7 +625,7 @@ static int fileExists(const char* aFilePathAndName)
 
 #endif
 
-static void wipefile(const char* aFilename)
+void wipefile(const char* aFilename)
 {
     int i;
     struct stat st;
@@ -648,9 +646,7 @@ static void wipefile(const char* aFilename)
 
 #ifdef _WIN32
 
-static int replaceChr(char* aString,
-                      char const aOldChr,
-                      char const aNewChr)
+int replaceChr(char* aString, const char aOldChr, const char aNewChr)
 {
     char* p;
     int lRes = 0;
@@ -677,7 +673,7 @@ static int replaceChr(char* aString,
 
 #ifdef TINYFD_NOLIB
 
-static int dirExists(const char* aDirPath)
+int dirExists(const char* aDirPath)
 {
     struct stat lInfo;
 
@@ -705,7 +701,7 @@ void tinyfd_beep()
     Beep(440, 300);
 }
 
-static void wipefileW(const wchar* aFilename)
+void wipefileW(const wchar* aFilename)
 {
     int i;
     struct _stat st;
@@ -724,7 +720,7 @@ static void wipefileW(const wchar* aFilename)
     }
 }
 
-static wchar* getPathWithoutFinalSlashW(
+wchar* getPathWithoutFinalSlashW(
     wchar* aoDestination, /* make sure it is allocated, use _MAX_PATH */
     const wchar* aSource) /* aoDestination and aSource can be the same */
 {
@@ -753,7 +749,7 @@ static wchar* getPathWithoutFinalSlashW(
     return aoDestination;
 }
 
-static wchar* getLastNameW(
+wchar* getLastNameW(
     wchar* aoDestination, /* make sure it is allocated */
     const wchar* aSource)
 {
@@ -782,8 +778,7 @@ static wchar* getLastNameW(
     return aoDestination;
 }
 
-static void Hex2RGBW(const wchar aHexRGB[8],
-                     ubyte aoResultRGB[3])
+void Hex2RGBW(const wchar aHexRGB[8], ubyte aoResultRGB[3])
 {
     wchar lColorChannel[8];
     if (aoResultRGB)
@@ -807,9 +802,7 @@ static void Hex2RGBW(const wchar aHexRGB[8],
     }
 }
 
-static void RGB2HexW(
-    ubyte const aRGB[3],
-    wchar aoResultHexRGB[8])
+void RGB2HexW(ubyte const aRGB[3], wchar aoResultHexRGB[8])
 {
     if (aoResultHexRGB)
     {
@@ -836,19 +829,19 @@ static void RGB2HexW(
 #define WC_ERR_INVALID_CHARS 0x00000080
 #endif
 
-static int sizeUtf16(const char* aUtf8string)
+int sizeUtf16(const char* aUtf8string)
 {
     return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
                                aUtf8string, -1, null, 0);
 }
 
-static int sizeUtf8(const wchar* aUtf16string)
+int sizeUtf8(const wchar* aUtf16string)
 {
     return WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
                                aUtf16string, -1, null, 0, null, null);
 }
 
-static int sizeMbcs(const wchar* aMbcsString)
+int sizeMbcs(const wchar* aMbcsString)
 {
     int lRes = WideCharToMultiByte(CP_ACP, 0,
                                    aMbcsString, -1, null, 0, null, null);
@@ -856,7 +849,7 @@ static int sizeMbcs(const wchar* aMbcsString)
     return lRes;
 }
 
-static wchar* utf8to16(const char* aUtf8string)
+wchar* utf8to16(const char* aUtf8string)
 {
     wchar* lUtf16string;
     int lSize = sizeUtf16(aUtf8string);
@@ -871,7 +864,7 @@ static wchar* utf8to16(const char* aUtf8string)
     return lUtf16string;
 }
 
-static wchar* mbcsTo16(const char* aMbcsString)
+wchar* mbcsTo16(const char* aMbcsString)
 {
     wchar* lMbcsString;
     int lSize = sizeUtf16(aMbcsString);
@@ -886,7 +879,7 @@ static wchar* mbcsTo16(const char* aMbcsString)
     return lMbcsString;
 }
 
-static char* utf16to8(const wchar* aUtf16string)
+char* utf16to8(const wchar* aUtf16string)
 {
     char* lUtf8string;
     int lSize = sizeUtf8(aUtf16string);
@@ -901,7 +894,7 @@ static char* utf16to8(const wchar* aUtf16string)
     return lUtf8string;
 }
 
-static char* utf16toMbcs(const wchar* aUtf16string)
+char* utf16toMbcs(const wchar* aUtf16string)
 {
     char* lMbcsString;
     int lSize = sizeMbcs(aUtf16string);
@@ -916,7 +909,7 @@ static char* utf16toMbcs(const wchar* aUtf16string)
     return lMbcsString;
 }
 
-static int dirExists(const char* aDirPath)
+int dirExists(const char* aDirPath)
 {
     struct _stat lInfo;
     wchar* lTmpWChar;
@@ -942,7 +935,7 @@ static int dirExists(const char* aDirPath)
         return 0;
 }
 
-static int fileExists(const char* aFilePathAndName)
+int fileExists(const char* aFilePathAndName)
 {
     struct _stat lInfo;
     wchar* lTmpWChar;
@@ -965,7 +958,7 @@ static int fileExists(const char* aFilePathAndName)
         return 0;
 }
 
-static int replaceWchar(wchar* aString, const wchar aOldChr, const wchar aNewChr)
+int replaceWchar(wchar* aString, const wchar aOldChr, const wchar aNewChr)
 {
     wchar* p;
     int lRes = 0;
@@ -997,7 +990,7 @@ static int replaceWchar(wchar* aString, const wchar aOldChr, const wchar aNewChr
 #endif /* _WIN32 */
 
 /* source and destination can be the same or ovelap*/
-static const(char)* ensureFilesExist(char* aDestination, const char* aSourcePathsAndNames)
+const(char)* ensureFilesExist(char* aDestination, const char* aSourcePathsAndNames)
 {
     char* lDestination = aDestination;
     const(char)* p;
@@ -1044,7 +1037,7 @@ static const(char)* ensureFilesExist(char* aDestination, const char* aSourcePath
 #ifdef _WIN32
 #ifndef TINYFD_NOLIB
 
-static int __stdcall EnumThreadWndProc(HWND hwnd, LPARAM lParam)
+int __stdcall EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 {
     wchar lTitleName[MAX_PATH];
     GetWindowTextW(hwnd, lTitleName, MAX_PATH);
@@ -1057,7 +1050,7 @@ static int __stdcall EnumThreadWndProc(HWND hwnd, LPARAM lParam)
     return 1;
 }
 
-static void hiddenConsoleW(const wchar* aString, const wchar* aDialogTitle, const int aInFront)
+void hiddenConsoleW(const wchar* aString, const wchar* aDialogTitle, const int aInFront)
 {
     STARTUPINFOW StartupInfo;
     PROCESS_INFORMATION ProcessInfo;
@@ -1090,7 +1083,7 @@ static void hiddenConsoleW(const wchar* aString, const wchar* aDialogTitle, cons
     CloseHandle(ProcessInfo.hProcess);
 }
 
-static int tinyfd_messageBoxW(
+int tinyfd_messageBoxW(
     const wchar* aTitle,      /* null or "" */
     const wchar* aMessage,    /* null or ""  may contain \n and \t */
     const wchar* aDialogType, /* "ok" "okcancel" "yesno" "yesnocancel" */
@@ -1157,7 +1150,7 @@ static int tinyfd_messageBoxW(
     }
 }
 
-static int messageBoxWinGui8(
+int messageBoxWinGui8(
     const char* aTitle,       /* null or "" */
     const char* aMessage,     /* null or ""  may contain \n and \t */
     const char* aDialogType,  /* "ok" "okcancel" "yesno" "yesnocancel" */
@@ -1187,7 +1180,7 @@ static int messageBoxWinGui8(
 }
 
 /* return has only meaning for tinyfd_query */
-static int tinyfd_notifyPopupW(
+int tinyfd_notifyPopupW(
     const wchar* aTitle,    /* null or L"" */
     const wchar* aMessage,  /* null or L"" may contain \n \t */
     const wchar* aIconType) /* L"info" L"warning" L"error" */
@@ -1258,7 +1251,7 @@ Show-BalloonTip");
     return 1;
 }
 
-static int notifyWinGui(
+int notifyWinGui(
     const char* aTitle,   /* null or "" */
     const char* aMessage, /* null or "" may NOT contain \n nor \t */
     const char* aIconType)
@@ -1279,7 +1272,7 @@ static int notifyWinGui(
     return 1;
 }
 
-static const(wchar)* tinyfd_inputBoxW(
+const(wchar)* tinyfd_inputBoxW(
     const wchar* aTitle,        /* null or L"" */
     const wchar* aMessage,      /* null or L"" may NOT contain \n nor \t */
     const wchar* aDefaultInput) /* L"" , if null it's a passwordBox */
@@ -1556,7 +1549,7 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
 #endif
 }
 
-static const(char)* inputBoxWinGui(
+const(char)* inputBoxWinGui(
     char* aoBuff,
     const char* aTitle,        /* null or "" */
     const char* aMessage,      /* null or "" may NOT contain \n nor \t */
@@ -1590,7 +1583,7 @@ static const(char)* inputBoxWinGui(
     return aoBuff;
 }
 
-static const(wchar)* tinyfd_saveFileDialogW(
+const(wchar)* tinyfd_saveFileDialogW(
     const wchar* aTitle,                   /* null or "" */
     const wchar* aDefaultPathAndFile,      /* null or "" */
     const int aNumOfFilterPatterns,        /* 0 */
@@ -1684,7 +1677,7 @@ static const(wchar)* tinyfd_saveFileDialogW(
     return lRetval;
 }
 
-static const(char)* saveFileDialogWinGui8(
+const(char)* saveFileDialogWinGui8(
     char* aoBuff,
     const char* aTitle,                   /* null or "" */
     const char* aDefaultPathAndFile,      /* null or "" */
@@ -1739,7 +1732,7 @@ static const(char)* saveFileDialogWinGui8(
     return aoBuff;
 }
 
-static const(wchar)* tinyfd_openFileDialogW(
+const(wchar)* tinyfd_openFileDialogW(
     const wchar* aTitle,                   /* null or "" */
     const wchar* aDefaultPathAndFile,      /* null or "" */
     const int aNumOfFilterPatterns,        /* 0 */
@@ -1872,7 +1865,7 @@ static const(wchar)* tinyfd_openFileDialogW(
     return lRetval;
 }
 
-static const(char)* openFileDialogWinGui8(
+const(char)* openFileDialogWinGui8(
     char* aoBuff,
     const char* aTitle,                   /* null or "" */
     const char* aDefaultPathAndFile,      /* null or "" */
@@ -1930,7 +1923,7 @@ static const(char)* openFileDialogWinGui8(
 }
 
 #ifndef TINYFD_NOSELECTFOLDERWIN
-static int __stdcall BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
+int __stdcall BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
 {
     if (uMsg == BFFM_INITIALIZED)
     {
@@ -1939,7 +1932,7 @@ static int __stdcall BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM
     return 0;
 }
 
-static const(wchar)* tinyfd_selectFolderDialogW(
+const(wchar)* tinyfd_selectFolderDialogW(
     const wchar* aTitle,       /* null or "" */
     const wchar* aDefaultPath) /* null or "" */
 {
@@ -1982,7 +1975,7 @@ static const(wchar)* tinyfd_selectFolderDialogW(
     return lBuff;
 }
 
-static const(char)* selectFolderDialogWinGui8(
+const(char)* selectFolderDialogWinGui8(
     char* aoBuff,
     const char* aTitle,       /* null or "" */
     const char* aDefaultPath) /* null or "" */
@@ -2014,7 +2007,7 @@ static const(char)* selectFolderDialogWinGui8(
 }
 #endif /*TINYFD_NOSELECTFOLDERWIN*/
 
-static const(wchar)* tinyfd_colorChooserW(
+const(wchar)* tinyfd_colorChooserW(
     const wchar* aTitle,         /* null or "" */
     const wchar* aDefaultHexRGB, /* null or "#FF0000"*/
     ubyte const aDefaultRGB[3],  /* { 0 , 255 , 255 } */
@@ -2079,7 +2072,7 @@ static const(wchar)* tinyfd_colorChooserW(
     return lResultHexRGB;
 }
 
-static const(char)* colorChooserWinGui8(
+const(char)* colorChooserWinGui8(
     const char* aTitle,           /* null or "" */
     const char* aDefaultHexRGB,   /* null or "#FF0000"*/
     ubyte const aDefaultRGB[3], /* { 0 , 255 , 255 } */
@@ -2116,7 +2109,7 @@ static const(char)* colorChooserWinGui8(
 }
 #endif /* TINYFD_NOLIB */
 
-static int dialogPresent()
+int dialogPresent()
 {
     static int lDialogPresent = -1;
     char lBuff[MAX_PATH_OR_CMD];
@@ -2149,7 +2142,7 @@ static int dialogPresent()
     return lDialogPresent;
 }
 
-static int messageBoxWinConsole(
+int messageBoxWinConsole(
     const char* aTitle,       /* null or "" */
     const char* aMessage,     /* null or ""  may contain \n and \t */
     const char* aDialogType,  /* "ok" "okcancel" "yesno" "yesnocancel" */
@@ -2265,7 +2258,7 @@ static int messageBoxWinConsole(
     return 1;
 }
 
-static const(char)* inputBoxWinConsole(
+const(char)* inputBoxWinConsole(
     char* aoBuff,
     const char* aTitle,        /* null or "" */
     const char* aMessage,      /* null or "" may NOT contain \n nor \t */
@@ -2359,7 +2352,7 @@ static const(char)* inputBoxWinConsole(
     return aoBuff + 3;
 }
 
-static const(char)* saveFileDialogWinConsole(
+const(char)* saveFileDialogWinConsole(
     char* aoBuff,
     const char* aTitle,              /* null or "" */
     const char* aDefaultPathAndFile) /* null or "" */
@@ -2423,7 +2416,7 @@ static const(char)* saveFileDialogWinConsole(
     return aoBuff;
 }
 
-static const(char)* openFileDialogWinConsole(
+const(char)* openFileDialogWinConsole(
     char* aoBuff,
     const char* aTitle,              /* null or "" */
     const char* aDefaultPathAndFile, /* null or "" */
@@ -2483,7 +2476,7 @@ static const(char)* openFileDialogWinConsole(
     return aoBuff;
 }
 
-static const(char)* selectFolderDialogWinConsole(
+const(char)* selectFolderDialogWinConsole(
     char* aoBuff,
     const char* aTitle,       /* null or "" */
     const char* aDefaultPath) /* null or "" */
@@ -3000,11 +2993,11 @@ const(char)* tinyfd_colorChooser(
 
 #else  /* unix */
 
-static char gPython2Name[16];
-static char gPython3Name[16];
-static char gPythonName[16];
+char gPython2Name[16];
+char gPython3Name[16];
+char gPythonName[16];
 
-static int isDarwin()
+int isDarwin()
 {
     static int ret = -1;
     struct utsname lUtsname;
@@ -3015,7 +3008,7 @@ static int isDarwin()
     return ret;
 }
 
-static int dirExists(const char* aDirPath)
+int dirExists(const char* aDirPath)
 {
     DIR *lDir;
     if (!aDirPath || !strlen(aDirPath))
@@ -3029,7 +3022,7 @@ static int dirExists(const char* aDirPath)
     return 1;
 }
 
-static int detectPresence(const char* aExecutable)
+int detectPresence(const char* aExecutable)
 {
     char lBuff[MAX_PATH_OR_CMD];
     char lTestedString[MAX_PATH_OR_CMD] = "which ";
@@ -3054,7 +3047,7 @@ static int detectPresence(const char* aExecutable)
     }
 }
 
-static const(char)* getVersion(const char* aExecutable) /*version must be first numeral*/
+const(char)* getVersion(const char* aExecutable) /*version must be first numeral*/
 {
     static char lBuff[MAX_PATH_OR_CMD];
     char lTestedString[MAX_PATH_OR_CMD];
@@ -3073,7 +3066,7 @@ static const(char)* getVersion(const char* aExecutable) /*version must be first 
     return lTmp;
 }
 
-static const(int)* getMajorMinorPatch(const char* aExecutable)
+const(int)* getMajorMinorPatch(const char* aExecutable)
 {
     static int lArray[3];
     char* lTmp;
@@ -3091,7 +3084,7 @@ static const(int)* getMajorMinorPatch(const char* aExecutable)
     return lArray;
 }
 
-static int tryCommand(const char* aCommand)
+int tryCommand(const char* aCommand)
 {
     char lBuff[MAX_PATH_OR_CMD];
     FILE *lIn;
@@ -3109,7 +3102,7 @@ static int tryCommand(const char* aCommand)
     }
 }
 
-static int isTerminalRunning()
+int isTerminalRunning()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3121,7 +3114,7 @@ static int isTerminalRunning()
     return ret;
 }
 
-static const(char)* dialogNameOnly()
+const(char)* dialogNameOnly()
 {
     static char ret[128] = "*";
     if (ret[0] == '*')
@@ -3178,7 +3171,7 @@ int isDialogVersionBetter09b()
     return lResult;
 }
 
-static int whiptailPresentOnly()
+int whiptailPresentOnly()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3188,7 +3181,7 @@ static int whiptailPresentOnly()
     return ret;
 }
 
-static const(char)* terminalName()
+const(char)* terminalName()
 {
     static char ret[128] = "*";
     char lShellName[64] = "*";
@@ -3311,7 +3304,7 @@ static const(char)* terminalName()
     }
 }
 
-static const(char)* dialogName()
+const(char)* dialogName()
 {
     const(char)* ret;
     ret = dialogNameOnly();
@@ -3325,7 +3318,7 @@ static const(char)* dialogName()
     }
 }
 
-static int whiptailPresent()
+int whiptailPresent()
 {
     int ret;
     ret = whiptailPresentOnly();
@@ -3339,12 +3332,12 @@ static int whiptailPresent()
     }
 }
 
-static int graphicMode()
+int graphicMode()
 {
     return !(tinyfd_forceConsole && (isTerminalRunning() || terminalName())) && (getenv("DISPLAY") || (isDarwin() && (!getenv("SSH_TTY") || getenv("DISPLAY"))));
 }
 
-static int pactlPresent()
+int pactlPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3354,7 +3347,7 @@ static int pactlPresent()
     return ret;
 }
 
-static int speakertestPresent()
+int speakertestPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3364,7 +3357,7 @@ static int speakertestPresent()
     return ret;
 }
 
-static int beepexePresent()
+int beepexePresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3374,7 +3367,7 @@ static int beepexePresent()
     return ret;
 }
 
-static int xmessagePresent()
+int xmessagePresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3384,7 +3377,7 @@ static int xmessagePresent()
     return ret && graphicMode();
 }
 
-static int gxmessagePresent()
+int gxmessagePresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3394,7 +3387,7 @@ static int gxmessagePresent()
     return ret && graphicMode();
 }
 
-static int gmessagePresent()
+int gmessagePresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3404,7 +3397,7 @@ static int gmessagePresent()
     return ret && graphicMode();
 }
 
-static int notifysendPresent()
+int notifysendPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3414,7 +3407,7 @@ static int notifysendPresent()
     return ret && graphicMode();
 }
 
-static int perlPresent()
+int perlPresent()
 {
     static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
@@ -3438,7 +3431,7 @@ static int perlPresent()
     return graphicMode() ? ret : 0;
 }
 
-static int afplayPresent()
+int afplayPresent()
 {
     static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
@@ -3462,7 +3455,7 @@ static int afplayPresent()
     return graphicMode() ? ret : 0;
 }
 
-static int xdialogPresent()
+int xdialogPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3472,7 +3465,7 @@ static int xdialogPresent()
     return ret && graphicMode();
 }
 
-static int gdialogPresent()
+int gdialogPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3482,7 +3475,7 @@ static int gdialogPresent()
     return ret && graphicMode();
 }
 
-static int osascriptPresent()
+int osascriptPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3493,7 +3486,7 @@ static int osascriptPresent()
     return ret && graphicMode() && !getenv("SSH_TTY");
 }
 
-static int qarmaPresent()
+int qarmaPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3503,7 +3496,7 @@ static int qarmaPresent()
     return ret && graphicMode();
 }
 
-static int matedialogPresent()
+int matedialogPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3513,7 +3506,7 @@ static int matedialogPresent()
     return ret && graphicMode();
 }
 
-static int shellementaryPresent()
+int shellementaryPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3523,7 +3516,7 @@ static int shellementaryPresent()
     return ret && graphicMode();
 }
 
-static int zenityPresent()
+int zenityPresent()
 {
     static int ret = -1;
     if (ret < 0)
@@ -3533,7 +3526,7 @@ static int zenityPresent()
     return ret && graphicMode();
 }
 
-static int zenity3Present()
+int zenity3Present()
 {
     static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
@@ -3574,7 +3567,7 @@ static int zenity3Present()
     return graphicMode() ? ret : 0;
 }
 
-static int kdialogPresent()
+int kdialogPresent()
 {
     static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
@@ -3628,7 +3621,7 @@ static int kdialogPresent()
     return graphicMode() ? ret : 0;
 }
 
-static int osx9orBetter()
+int osx9orBetter()
 {
     static int ret = -1;
     char lBuff[MAX_PATH_OR_CMD];
@@ -3654,7 +3647,7 @@ static int osx9orBetter()
     return ret;
 }
 
-static int python2Present()
+int python2Present()
 {
     static int ret = -1;
     int i;
@@ -3690,7 +3683,7 @@ static int python2Present()
     return ret;
 }
 
-static int python3Present()
+int python3Present()
 {
     static int ret = -1;
     int i;
@@ -3726,7 +3719,7 @@ static int python3Present()
     return ret;
 }
 
-static int tkinter2Present()
+int tkinter2Present()
 {
     static int ret = -1;
     char lPythonCommand[256];
@@ -3747,7 +3740,7 @@ static int tkinter2Present()
     return ret && graphicMode() && !(isDarwin() && getenv("SSH_TTY"));
 }
 
-static int tkinter3Present()
+int tkinter3Present()
 {
     static int ret = -1;
     char lPythonCommand[256];
@@ -3768,7 +3761,7 @@ static int tkinter3Present()
     return ret && graphicMode() && !(isDarwin() && getenv("SSH_TTY"));
 }
 
-static int pythonDbusPresent()
+int pythonDbusPresent()
 {
     static int ret = -1;
     char lPythonCommand[256];
@@ -3802,7 +3795,7 @@ notify=dbus.Interface(notif,'org.freedesktop.Notifications');\nexcept:\n\tprint(
     return ret && graphicMode() && !(isDarwin() && getenv("SSH_TTY"));
 }
 
-static void sigHandler(int sig)
+void sigHandler(int sig)
 {
     FILE *lIn;
     if ((lIn = popen("pactl unload-module module-sine", "r")))
