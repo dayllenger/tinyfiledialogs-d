@@ -1,68 +1,9 @@
-/*_________
- /         \ tinyfiledialogs.h v3.3.9 [Apr 14, 2019] zlib licence
- |tiny file| Unique header file created [November 9, 2014]
- | dialogs | Copyright (c) 2014 - 2018 Guillaume Vareille http://ysengrin.com
- \____  ___/ http://tinyfiledialogs.sourceforge.net
-      \|     git clone http://git.code.sf.net/p/tinyfiledialogs/code tinyfd
-		 ____________________________________________
-		|                                            |
-		|   email: tinyfiledialogs at ysengrin.com   |
-		|____________________________________________|
-         ________________________________________________________________________
-        |                                                                        |
-        | the windows only wchar_t UTF-16 prototypes are at the end of this file |
-        |________________________________________________________________________|
-
-Please upvote my stackoverflow answer https://stackoverflow.com/a/47651444
-
-tiny file dialogs (cross-platform C C++)
-InputBox PasswordBox MessageBox ColorPicker
-OpenFileDialog SaveFileDialog SelectFolderDialog
-Native dialog library for WINDOWS MAC OSX GTK+ QT CONSOLE & more
-SSH supported via automatic switch to console mode or X11 forwarding
-
-one C file + a header (add them to your C or C++ project) with 8 functions:
-- beep
-- notify popup (tray)
-- message & question
-- input & password
-- save file
-- open file(s)
-- select folder
-- color picker
-
-Complements OpenGL Vulkan GLFW GLUT GLUI VTK SFML TGUI
-SDL Ogre Unity3d ION OpenCV CEGUI MathGL GLM CPW GLOW
-Open3D IMGUI MyGUI GLT NGL STB & GUI less programs
-
-NO INIT
-NO MAIN LOOP
-NO LINKING
-NO INCLUDE
-
-The dialogs can be forced into console mode
-
-Windows (XP to 10) ASCII UTF-8
-- native code & vbs create the graphic dialogs
-- enhanced console mode can use dialog.exe from
-http://andrear.altervista.org/home/cdialog.php
-- basic console input
-
-Unix (command line calls) ASCII UTF-8
-- applescript, kdialog, zenity
-- python (2 or 3) + tkinter + python-dbus (optional)
-- dialog (opens a console if needed)
-- basic console input
-The same executable can run across desktops & distributions
-
+/*
 C89 & C++98 compliant: tested with C & C++ compilers
 VisualStudio MinGW-gcc GCC Clang TinyCC OpenWatcom-v2 BorlandC SunCC ZapCC
 on Windows Mac Linux Bsd Solaris Minix Raspbian
 using Gnome Kde Enlightenment Mate Cinnamon Budgie Unity Lxde Lxqt Xfce
 WindowMaker IceWm Cde Jds OpenBox Awesome Jwm Xdm
-
-Bindings for LUA and C# dll, Haskell
-Included in LWJGL(java), Rust, Allegrobasic
 
 Thanks for contributions, bug corrections & thorough testing to:
 - Don Heyse http://ldglite.sf.net for bug corrections & thorough testing!
@@ -131,62 +72,6 @@ for graphic mode:
   gxmessage gmessage xmessage xdialog gdialog
 for console mode:
   dialog whiptail basicinput no_solution */
-
-void tinyfd_beep();
-
-int tinyfd_notifyPopup(
-	char const * const aTitle, /* NULL or "" */
-	char const * const aMessage, /* NULL or "" may contain \n \t */
-	char const * const aIconType); /* "info" "warning" "error" */
-		/* return has only meaning for tinyfd_query */
-
-int tinyfd_messageBox(
-	char const * const aTitle , /* NULL or "" */
-	char const * const aMessage , /* NULL or "" may contain \n \t */
-	char const * const aDialogType , /* "ok" "okcancel" "yesno" "yesnocancel" */
-	char const * const aIconType , /* "info" "warning" "error" "question" */
-	int const aDefaultButton ) ;
-		/* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
-
-char const * tinyfd_inputBox(
-	char const * const aTitle , /* NULL or "" */
-	char const * const aMessage , /* NULL or "" may NOT contain \n \t on windows */
-	char const * const aDefaultInput ) ;  /* "" , if NULL it's a passwordBox */
-		/* returns NULL on cancel */
-
-char const * tinyfd_saveFileDialog(
-	char const * const aTitle , /* NULL or "" */
-	char const * const aDefaultPathAndFile , /* NULL or "" */
-	int const aNumOfFilterPatterns , /* 0 */
-	char const * const * const aFilterPatterns , /* NULL | {"*.jpg","*.png"} */
-	char const * const aSingleFilterDescription ) ; /* NULL | "text files" */
-		/* returns NULL on cancel */
-
-char const * tinyfd_openFileDialog(
-	char const * const aTitle , /* NULL or "" */
-	char const * const aDefaultPathAndFile , /* NULL or "" */
-	int const aNumOfFilterPatterns , /* 0 */
-	char const * const * const aFilterPatterns , /* NULL | {"*.jpg","*.png"} */
-	char const * const aSingleFilterDescription , /* NULL | "image files" */
-	int const aAllowMultipleSelects ) ; /* 0 or 1 */
-		/* in case of multiple files, the separator is | */
-		/* returns NULL on cancel */
-
-char const * tinyfd_selectFolderDialog(
-	char const * const aTitle , /* NULL or "" */
-	char const * const aDefaultPath ) ; /* NULL or "" */
-		/* returns NULL on cancel */
-
-char const * tinyfd_colorChooser(
-	char const * const aTitle , /* NULL or "" */
-	char const * const aDefaultHexRGB , /* NULL or "#FF0000" */
-	unsigned char const aDefaultRGB[3] , /* { 0 , 255 , 255 } */
-	unsigned char aoResultRGB[3] ) ; /* { 0 , 0 , 0 } */
-		/* returns the hexcolor as a string "#FF0000" */
-		/* aoResultRGB also contains the result */
-		/* aDefaultRGB is used only if aDefaultHexRGB is NULL */
-		/* aDefaultRGB and aoResultRGB can be the same array */
-		/* returns NULL on cancel */
 
 #ifdef	__cplusplus
 }
