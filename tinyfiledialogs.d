@@ -883,7 +883,7 @@ char* utf16to8(const wchar* aUtf16string)
 {
     char* lUtf8string;
     int lSize = sizeUtf8(aUtf16string);
-    lUtf8string = (char*)malloc(lSize);
+    lUtf8string = cast(char*)malloc(lSize);
     lSize = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
                                 aUtf16string, -1, lUtf8string, lSize, null, null);
     if (lSize == 0)
@@ -898,7 +898,7 @@ char* utf16toMbcs(const wchar* aUtf16string)
 {
     char* lMbcsString;
     int lSize = sizeMbcs(aUtf16string);
-    lMbcsString = (char*)malloc(lSize);
+    lMbcsString = cast(char*)malloc(lSize);
     lSize = WideCharToMultiByte(CP_ACP, 0,
                                 aUtf16string, -1, lMbcsString, lSize, null, null);
     if (lSize == 0)
@@ -1276,7 +1276,7 @@ const(wchar)* tinyfd_inputBoxW(
     const wchar* aMessage,
     const wchar* aDefaultInput)
 {
-    static wchar lBuff[MAX_PATH_OR_CMD];
+    static wchar[MAX_PATH_OR_CMD] lBuff;
     wchar* str;
     FILE *lIn;
     FILE *lFile;
@@ -1589,7 +1589,7 @@ const(wchar)* tinyfd_saveFileDialogW(
     const wchar** aFilterPatterns,
     const wchar* aSingleFilterDescription)
 {
-    static wchar lBuff[MAX_PATH_OR_CMD];
+    static wchar[MAX_PATH_OR_CMD] lBuff;
     wchar lDirname[MAX_PATH_OR_CMD];
     wchar str[MAX_PATH_OR_CMD];
     wchar lFilterPatterns[MAX_PATH_OR_CMD] = L"";
@@ -1739,7 +1739,7 @@ const(wchar)* tinyfd_openFileDialogW(
     const wchar* aSingleFilterDescription,
     const int aAllowMultipleSelects)
 {
-    static wchar lBuff[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD];
+    static wchar[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff;
 
     size_t lLengths[MAX_MULTIPLE_FILES];
     wchar lDirname[MAX_PATH_OR_CMD];
@@ -1933,7 +1933,7 @@ extern (Windows) int BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM
 
 const(wchar)* tinyfd_selectFolderDialogW(const wchar* aTitle, const wchar* aDefaultPath)
 {
-    static wchar lBuff[MAX_PATH_OR_CMD];
+    static wchar[MAX_PATH_OR_CMD] lBuff;
 
     BROWSEINFOW bInfo;
     LPITEMIDLIST lpItem;
@@ -2109,7 +2109,7 @@ const(char)* colorChooserWinGui8(
 int dialogPresent()
 {
     static int lDialogPresent = -1;
-    char lBuff[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lBuff;
     FILE *lIn;
     const char* lString = "dialog.exe";
     if (lDialogPresent < 0)
@@ -2146,10 +2146,10 @@ int messageBoxWinConsole(
     const char* aIconType,
     const int aDefaultButton)
 {
-    char str[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] str;
     char lDialogFile[MAX_PATH_OR_CMD];
     FILE *lIn;
-    char lBuff[MAX_PATH_OR_CMD] = "";
+    char[MAX_PATH_OR_CMD] lBuff = "";
 
     strcpy(str, "dialog ");
     if (SOME(aTitle))
@@ -2261,7 +2261,7 @@ const(char)* inputBoxWinConsole(
     const char* aMessage,
     const char* aDefaultInput)
 {
-    char str[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] str;
     char lDialogFile[MAX_PATH_OR_CMD];
     FILE *lIn;
     int lResult;
@@ -2354,7 +2354,7 @@ const(char)* saveFileDialogWinConsole(
     const char* aTitle,
     const char* aDefaultPathAndFile)
 {
-    char str[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] str;
     char lPathAndFile[MAX_PATH_OR_CMD] = "";
     FILE *lIn;
 
@@ -2420,7 +2420,7 @@ const(char)* openFileDialogWinConsole(
     const int aAllowMultipleSelects)
 {
     char lFilterPatterns[MAX_PATH_OR_CMD] = "";
-    char str[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] str;
     FILE *lIn;
 
     strcpy(str, "dialog ");
@@ -2478,8 +2478,8 @@ const(char)* selectFolderDialogWinConsole(
     const char* aTitle,
     const char* aDefaultPath)
 {
-    char str[MAX_PATH_OR_CMD];
-    char lString[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] str;
+    char[MAX_PATH_OR_CMD] lString;
     FILE *lIn;
 
     strcpy(str, "dialog ");
@@ -2670,7 +2670,7 @@ const(char)* tinyfd_inputBox(
     const char* aMessage,
     const char* aDefaultInput)
 {
-    static char lBuff[MAX_PATH_OR_CMD];
+    static char[MAX_PATH_OR_CMD] lBuff;
     char* lEOF;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
 
@@ -2686,7 +2686,7 @@ const(char)* tinyfd_inputBox(
         if (lQuery)
         {
             response("windows");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         lBuff[0] = '\0';
         return inputBoxWinGui(lBuff, aTitle, aMessage, aDefaultInput);
@@ -2698,7 +2698,7 @@ const(char)* tinyfd_inputBox(
         if (lQuery)
         {
             response("dialog");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         lBuff[0] = '\0';
         return inputBoxWinConsole(lBuff, aTitle, aMessage, aDefaultInput);
@@ -2708,7 +2708,7 @@ const(char)* tinyfd_inputBox(
         if (lQuery)
         {
             response("basicinput");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         lBuff[0] = '\0';
         if (!gWarningDisplayed && !tinyfd_forceConsole)
@@ -2765,9 +2765,9 @@ const(char)* tinyfd_saveFileDialog(
     const char** aFilterPatterns,
     const char* aSingleFilterDescription)
 {
-    static char lBuff[MAX_PATH_OR_CMD];
+    static char[MAX_PATH_OR_CMD] lBuff;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char lString[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lString;
     const(char)* p;
     lBuff[0] = '\0';
 #ifndef TINYFD_NOLIB
@@ -2776,7 +2776,7 @@ const(char)* tinyfd_saveFileDialog(
         if (lQuery)
         {
             response("windows");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         p = saveFileDialogWinGui8(lBuff,
                                     aTitle, aDefaultPathAndFile, aNumOfFilterPatterns, aFilterPatterns, aSingleFilterDescription);
@@ -2788,7 +2788,7 @@ const(char)* tinyfd_saveFileDialog(
         if (lQuery)
         {
             response("dialog");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         p = saveFileDialogWinConsole(lBuff, aTitle, aDefaultPathAndFile);
     }
@@ -2797,7 +2797,7 @@ const(char)* tinyfd_saveFileDialog(
         if (lQuery)
         {
             response("basicinput");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         p = tinyfd_inputBox(aTitle, "Save file", "");
     }
@@ -2827,7 +2827,7 @@ const(char)* tinyfd_openFileDialog(
     const char* aSingleFilterDescription,
     const int aAllowMultipleSelects)
 {
-    static char lBuff[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD];
+    static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     const(char)* p;
 #ifndef TINYFD_NOLIB
@@ -2836,7 +2836,7 @@ const(char)* tinyfd_openFileDialog(
         if (lQuery)
         {
             response("windows");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         p = openFileDialogWinGui8(lBuff,
                                   aTitle, aDefaultPathAndFile, aNumOfFilterPatterns,
@@ -2849,7 +2849,7 @@ const(char)* tinyfd_openFileDialog(
         if (lQuery)
         {
             response("dialog");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         p = openFileDialogWinConsole(lBuff,
                                      aTitle, aDefaultPathAndFile, aAllowMultipleSelects);
@@ -2859,7 +2859,7 @@ const(char)* tinyfd_openFileDialog(
         if (lQuery)
         {
             response("basicinput");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         p = tinyfd_inputBox(aTitle, "Open file", "");
     }
@@ -2882,7 +2882,7 @@ const(char)* tinyfd_openFileDialog(
 
 const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
-    static char lBuff[MAX_PATH_OR_CMD];
+    static char[MAX_PATH_OR_CMD] lBuff;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     const(char)* p;
 #ifndef TINYFD_NOLIB
@@ -2891,7 +2891,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
         if (lQuery)
         {
             response("windows");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
 #ifndef TINYFD_NOSELECTFOLDERWIN
         p = selectFolderDialogWinGui8(lBuff, aTitle, aDefaultPath);
@@ -2904,7 +2904,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
         if (lQuery)
         {
             response("dialog");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         p = selectFolderDialogWinConsole(lBuff, aTitle, aDefaultPath);
     }
@@ -2913,7 +2913,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
         if (lQuery)
         {
             response("basicinput");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         p = tinyfd_inputBox(aTitle, "Select folder", "");
     }
@@ -2928,8 +2928,8 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
 const(char)* tinyfd_colorChooser(
     const char* aTitle,
     const char* aDefaultHexRGB,
-    ubyte const aDefaultRGB[3],
-    ubyte aoResultRGB[3])
+    ref const ubyte[3] aDefaultRGB,
+    ref ubyte[3] aoResultRGB)
 {
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char lDefaultHexRGB[8];
@@ -2943,7 +2943,7 @@ const(char)* tinyfd_colorChooser(
         if (lQuery)
         {
             response("windows");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         return colorChooserWinGui8(
             aTitle, aDefaultHexRGB, aDefaultRGB, aoResultRGB);
@@ -2952,12 +2952,12 @@ const(char)* tinyfd_colorChooser(
 #endif /* TINYFD_NOLIB */
         if (aDefaultHexRGB)
     {
-        lpDefaultHexRGB = (char*)aDefaultHexRGB;
+        lpDefaultHexRGB = cast(char*)aDefaultHexRGB;
     }
     else
     {
         RGB2Hex(aDefaultRGB, lDefaultHexRGB);
-        lpDefaultHexRGB = (char*)lDefaultHexRGB;
+        lpDefaultHexRGB = cast(char*)lDefaultHexRGB;
     }
     p = tinyfd_inputBox(aTitle,
                         "Enter hex rgb color (i.e. #f5ca20)", lpDefaultHexRGB);
@@ -2979,11 +2979,11 @@ const(char)* tinyfd_colorChooser(
     return p;
 }
 
-#else  /* unix */
++/
 
-char gPython2Name[16];
-char gPython3Name[16];
-char gPythonName[16];
+char[16] gPython2Name;
+char[16] gPython3Name;
+char[16] gPythonName;
 
 int isDarwin()
 {
@@ -3012,8 +3012,8 @@ int dirExists(const char* aDirPath)
 
 int detectPresence(const char* aExecutable)
 {
-    char lBuff[MAX_PATH_OR_CMD];
-    char lTestedString[MAX_PATH_OR_CMD] = "which ";
+    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lTestedString = "which ";
     FILE *lIn;
 
     strcat(lTestedString, aExecutable);
@@ -3037,8 +3037,8 @@ int detectPresence(const char* aExecutable)
 
 const(char)* getVersion(const char* aExecutable) /*version must be first numeral*/
 {
-    static char lBuff[MAX_PATH_OR_CMD];
-    char lTestedString[MAX_PATH_OR_CMD];
+    static char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lTestedString;
     FILE *lIn;
     char* lTmp;
 
@@ -3056,10 +3056,10 @@ const(char)* getVersion(const char* aExecutable) /*version must be first numeral
 
 const(int)* getMajorMinorPatch(const char* aExecutable)
 {
-    static int lArray[3];
+    static int[3] lArray;
     char* lTmp;
 
-    lTmp = (char*)getVersion(aExecutable);
+    lTmp = cast(char*)getVersion(aExecutable);
     lArray[0] = atoi(strtok(lTmp, " ,.-"));
     /* printf("lArray0 %d\n", lArray[0]); */
     lArray[1] = atoi(strtok(0, " ,.-"));
@@ -3074,7 +3074,7 @@ const(int)* getMajorMinorPatch(const char* aExecutable)
 
 int tryCommand(const char* aCommand)
 {
-    char lBuff[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lBuff;
     FILE *lIn;
 
     lIn = popen(aCommand, "r");
@@ -3104,7 +3104,7 @@ int isTerminalRunning()
 
 const(char)* dialogNameOnly()
 {
-    static char ret[128] = "*";
+    static char[128] ret = "*";
     if (ret[0] == '*')
     {
         if (isDarwin() && strcpy(ret, "/opt/local/bin/dialog") && detectPresence(ret))
@@ -3131,12 +3131,12 @@ int isDialogVersionBetter09b()
     int lResult;
     char* lMinorP;
     char* lLetter;
-    char lBuff[128];
+    char[128] lBuff;
 
-    /*char lTest[128] = " 0.9b-20031126" ;*/
+    /*char[128] lTest = " 0.9b-20031126" ;*/
 
     lDialogName = dialogNameOnly();
-    if (!strlen(lDialogName) || !(lVersion = (char*)getVersion(lDialogName)))
+    if (!strlen(lDialogName) || !(lVersion = cast(char*)getVersion(lDialogName)))
         return 0;
     /*lVersion = lTest ;*/
     /*printf("lVersion %s\n", lVersion);*/
@@ -3171,8 +3171,8 @@ int whiptailPresentOnly()
 
 const(char)* terminalName()
 {
-    static char ret[128] = "*";
-    char lShellName[64] = "*";
+    static char[128] ret = "*";
+    char[64] lShellName = "*";
     int *lArray;
 
     if (ret[0] == '*')
@@ -3398,7 +3398,7 @@ int notifysendPresent()
 int perlPresent()
 {
     static int ret = -1;
-    char lBuff[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lBuff;
     FILE *lIn;
 
     if (ret < 0)
@@ -3422,7 +3422,7 @@ int perlPresent()
 int afplayPresent()
 {
     static int ret = -1;
-    char lBuff[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lBuff;
     FILE *lIn;
 
     if (ret < 0)
@@ -3517,7 +3517,7 @@ int zenityPresent()
 int zenity3Present()
 {
     static int ret = -1;
-    char lBuff[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lBuff;
     FILE *lIn;
     int lIntTmp;
 
@@ -3558,7 +3558,7 @@ int zenity3Present()
 int kdialogPresent()
 {
     static int ret = -1;
-    char lBuff[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lBuff;
     FILE *lIn;
     char* lDesktop;
 
@@ -3612,7 +3612,7 @@ int kdialogPresent()
 int osx9orBetter()
 {
     static int ret = -1;
-    char lBuff[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lBuff;
     FILE *lIn;
     int V, v;
 
@@ -3710,8 +3710,8 @@ int python3Present()
 int tkinter2Present()
 {
     static int ret = -1;
-    char lPythonCommand[256];
-    char lPythonParams[256] =
+    char[256] lPythonCommand;
+    char[256] lPythonParams =
         "-S -c \"try:\n\timport Tkinter;\nexcept:\n\tprint 0;\"";
 
     if (ret < 0)
@@ -3731,8 +3731,8 @@ int tkinter2Present()
 int tkinter3Present()
 {
     static int ret = -1;
-    char lPythonCommand[256];
-    char lPythonParams[256] =
+    char[256] lPythonCommand;
+    char[256] lPythonParams =
         "-S -c \"try:\n\timport tkinter;\nexcept:\n\tprint(0);\"";
 
     if (ret < 0)
@@ -3752,11 +3752,15 @@ int tkinter3Present()
 int pythonDbusPresent()
 {
     static int ret = -1;
-    char lPythonCommand[256];
-    char lPythonParams[256] =
-        "-c \"try:\n\timport dbus;bus=dbus.SessionBus();\
-notif=bus.get_object('org.freedesktop.Notifications','/org/freedesktop/Notifications');\
-notify=dbus.Interface(notif,'org.freedesktop.Notifications');\nexcept:\n\tprint(0);\"";
+    char[256] lPythonCommand;
+    char[256] lPythonParams =
+`-c "try:
+    import dbus
+    bus=dbus.SessionBus()
+    notif=bus.get_object('org.freedesktop.Notifications','/org/freedesktop/Notifications')
+    notify=dbus.Interface(notif,'org.freedesktop.Notifications')
+except:
+    print(0)"`;
 
     if (ret < 0)
     {
@@ -3794,7 +3798,7 @@ void sigHandler(int sig)
 
 void tinyfd_beep()
 {
-    char str[256];
+    char[256] str;
     FILE *lIn;
 
     if (osascriptPresent())
@@ -3849,7 +3853,7 @@ int tinyfd_messageBox(
     const char* aIconType,
     const int aDefaultButton)
 {
-    char lBuff[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lBuff;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char* str = null;
     char* lpDialogString;
@@ -3869,7 +3873,7 @@ int tinyfd_messageBox(
     lMessageLen = aMessage ? strlen(aMessage) : 0;
     if (!aTitle || !lQuery)
     {
-        str = (char*)malloc(MAX_PATH_OR_CMD + lTitleLen + lMessageLen);
+        str = cast(char*)malloc(MAX_PATH_OR_CMD + lTitleLen + lMessageLen);
     }
 
     if (osascriptPresent())
@@ -3953,10 +3957,10 @@ int tinyfd_messageBox(
         strcat(str, ")' ");
 
         strcat(str,
-               "-e 'if vButton is \"Yes\" then' -e 'return 1'\
- -e 'else if vButton is \"OK\" then' -e 'return 1'\
- -e 'else if vButton is \"No\" then' -e 'return 2'\
- -e 'else' -e 'return 0' -e 'end if' ");
+               " -e 'if vButton is \"Yes\" then' -e 'return 1'" ~
+               " -e 'else if vButton is \"OK\" then' -e 'return 1'" ~
+               " -e 'else if vButton is \"No\" then' -e 'return 2'" ~
+               " -e 'else' -e 'return 0' -e 'end if' ");
 
         strcat(str, "-e 'on error number -128' ");
         strcat(str, "-e '0' ");
@@ -4165,8 +4169,8 @@ int tinyfd_messageBox(
         if (isDarwin())
         {
             strcat(str,
-                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set \
-frontmost of process \\\"Python\\\" to true' ''');");
+                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set " ~
+                   "frontmost of process \\\"Python\\\" to true' ''');");
         }
 
         strcat(str, "res=tkMessageBox.");
@@ -4242,16 +4246,23 @@ frontmost of process \\\"Python\\\" to true' ''');");
 
         if (aDialogType && !strcmp("yesnocancel", aDialogType))
         {
-            strcat(str, ");\n\
-if res is None :\n\tprint 0\n\
-elif res is False :\n\tprint 2\n\
-else :\n\tprint 1\n\"");
+            strcat(str, `);
+if res is None:
+    print 0
+elif res is False:
+    print 2
+else:
+    print 1
+"`);
         }
         else
         {
-            strcat(str, ");\n\
-if res is False :\n\tprint 0\n\
-else :\n\tprint 1\n\"");
+            strcat(str, `);
+if res is False:
+    print 0
+else:
+    print 1
+"`);
         }
     }
     else if (!gxmessagePresent() && !gmessagePresent() && !gdialogPresent() && !xdialogPresent() && tkinter3Present())
@@ -4339,16 +4350,23 @@ else :\n\tprint 1\n\"");
 
         if (aDialogType && !strcmp("yesnocancel", aDialogType))
         {
-            strcat(str, ");\n\
-if res is None :\n\tprint(0)\n\
-elif res is False :\n\tprint(2)\n\
-else :\n\tprint(1)\n\"");
+            strcat(str, `);
+if res is None:
+    print(0)
+elif res is False:
+    print(2)
+else:
+    print(1)
+"`);
         }
         else
         {
-            strcat(str, ");\n\
-if res is False :\n\tprint(0)\n\
-else :\n\tprint(1)\n\"");
+            strcat(str, `);
+if res is False:
+    print(0)
+else:
+    print(1)
+"`);
         }
     }
     else if (gxmessagePresent() || gmessagePresent() || (!gdialogPresent() && !xdialogPresent() && xmessagePresent()))
@@ -4563,23 +4581,22 @@ else :\n\tprint(1)\n\"");
         {
             if (aDialogType && !strcmp("yesnocancel", aDialogType))
             {
-                strcat(str, "0 60 0 Yes \"\" No \"\") 2>/tmp/tinyfd.txt;\
-if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;\
-tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
+                strcat(str, "0 60 0 Yes \"\" No \"\") 2>/tmp/tinyfd.txt;" ~
+                            "if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;" ~
+                            "tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
             }
             else
             {
-                strcat(str,
-                       "10 60 ) 2>&1;if [ $? = 0 ];then echo 1;else echo 0;fi");
+                strcat(str, "10 60 ) 2>&1;if [ $? = 0 ];then echo 1;else echo 0;fi");
             }
         }
         else
         {
             if (aDialogType && !strcmp("yesnocancel", aDialogType))
             {
-                strcat(str, "0 60 0 Yes \"\" No \"\" >/dev/tty ) 2>/tmp/tinyfd.txt;\
-                if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;\
-                tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
+                strcat(str, "0 60 0 Yes \"\" No \"\" >/dev/tty ) 2>/tmp/tinyfd.txt;" ~
+                            "if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;" ~
+                            "tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
 
                 if (lWasXterm)
                 {
@@ -4714,13 +4731,12 @@ tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
             response("perl-dbus");
             return 1;
         }
-
-        sprintf(str, "perl -e \"use Net::DBus;\
-                                                                 my \\$sessionBus = Net::DBus->session;\
-                                                                 my \\$notificationsService = \\$sessionBus->get_service('org.freedesktop.Notifications');\
-                                                                 my \\$notificationsObject = \\$notificationsService->get_object('/org/freedesktop/Notifications',\
-                                                                 'org.freedesktop.Notifications');\
-                                                                 my \\$notificationId;\\$notificationId = \\$notificationsObject->Notify(shift, 0, '%s', '%s', '%s', [], {}, -1);\" ",
+        sprintf(str, `perl -e "use Net::DBus;
+                    my \$sessionBus = Net::DBus->session;
+                    my \$notificationsService = \$sessionBus->get_service('org.freedesktop.Notifications');
+                    my \$notificationsObject = \$notificationsService->get_object('/org/freedesktop/Notifications',
+                        'org.freedesktop.Notifications');
+                    my \$notificationId;\$notificationId = \$notificationsObject->Notify(shift, 0, '%s', '%s', '%s', [], {}, -1);"`,
                 aIconType ? aIconType : "", aTitle ? aTitle : "", aMessage ? aMessage : "");
     }
     else if (!isTerminalRunning() && notifysendPresent() && !strcmp("ok", aDialogType))
@@ -4884,7 +4900,7 @@ int tinyfd_notifyPopup(
     const char* aMessage,
     const char* aIconType)
 {
-    char lBuff[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] lBuff;
     char* str = null;
     char* lpDialogString;
     FILE *lIn;
@@ -4902,7 +4918,7 @@ int tinyfd_notifyPopup(
     lMessageLen = aMessage ? strlen(aMessage) : 0;
     if (!aTitle || lQuery)
     {
-        str = (char*)malloc(MAX_PATH_OR_CMD + lTitleLen + lMessageLen);
+        str = cast(char*)malloc(MAX_PATH_OR_CMD + lTitleLen + lMessageLen);
     }
 
     if (osascriptPresent())
@@ -5032,12 +5048,12 @@ int tinyfd_notifyPopup(
             response("perl-dbus");
             return 1;
         }
-        sprintf(str, "perl -e \"use Net::DBus;\
-                    my \\$sessionBus = Net::DBus->session;\
-                    my \\$notificationsService = \\$sessionBus->get_service('org.freedesktop.Notifications');\
-                    my \\$notificationsObject = \\$notificationsService->get_object('/org/freedesktop/Notifications',\
-                    'org.freedesktop.Notifications');\
-                    my \\$notificationId;\\$notificationId = \\$notificationsObject->Notify(shift, 0, '%s', '%s', '%s', [], {}, -1);\" ",
+        sprintf(str, `perl -e "use Net::DBus;
+                    my \$sessionBus = Net::DBus->session;
+                    my \$notificationsService = \$sessionBus->get_service('org.freedesktop.Notifications');
+                    my \$notificationsObject = \$notificationsService->get_object('/org/freedesktop/Notifications',
+                        'org.freedesktop.Notifications');
+                    my \$notificationId;\$notificationId = \$notificationsObject->Notify(shift, 0, '%s', '%s', '%s', [], {}, -1);"`,
                 aIconType ? aIconType : "", aTitle ? aTitle : "", aMessage ? aMessage : "");
     }
     else if (pythonDbusPresent())
@@ -5122,7 +5138,7 @@ const(char)* tinyfd_inputBox(
     const char* aMessage,
     const char* aDefaultInput)
 {
-    static char lBuff[MAX_PATH_OR_CMD];
+    static char[MAX_PATH_OR_CMD] lBuff;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char* str = null;
     char* lpDialogString;
@@ -5144,7 +5160,7 @@ const(char)* tinyfd_inputBox(
     lMessageLen = aMessage ? strlen(aMessage) : 0;
     if (!aTitle || !lQuery)
     {
-        str = (char*)malloc(MAX_PATH_OR_CMD + lTitleLen + lMessageLen);
+        str = cast(char*)malloc(MAX_PATH_OR_CMD + lTitleLen + lMessageLen);
     }
 
     if (osascriptPresent())
@@ -5152,7 +5168,7 @@ const(char)* tinyfd_inputBox(
         if (lQuery)
         {
             response("applescript");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, "osascript ");
         if (!osx9orBetter())
@@ -5192,7 +5208,7 @@ const(char)* tinyfd_inputBox(
         if (lQuery)
         {
             response("kdialog");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, "szAnswer=$(kdialog");
 
@@ -5236,7 +5252,7 @@ const(char)* tinyfd_inputBox(
             if (lQuery)
             {
                 response("zenity");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "szAnswer=$(zenity");
             if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
@@ -5249,7 +5265,7 @@ const(char)* tinyfd_inputBox(
             if (lQuery)
             {
                 response("matedialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "szAnswer=$(matedialog");
         }
@@ -5258,7 +5274,7 @@ const(char)* tinyfd_inputBox(
             if (lQuery)
             {
                 response("shellementary");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "szAnswer=$(shellementary");
         }
@@ -5267,7 +5283,7 @@ const(char)* tinyfd_inputBox(
             if (lQuery)
             {
                 response("qarma");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "szAnswer=$(qarma");
             if (!getenv("SSH_TTY"))
@@ -5310,7 +5326,7 @@ const(char)* tinyfd_inputBox(
             if (lQuery)
             {
                 response("gxmessage");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "szAnswer=$(gxmessage -buttons Ok:1,Cancel:0 -center \"");
         }
@@ -5319,7 +5335,7 @@ const(char)* tinyfd_inputBox(
             if (lQuery)
             {
                 response("gmessage");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "szAnswer=$(gmessage -buttons Ok:1,Cancel:0 -center \"");
         }
@@ -5348,7 +5364,7 @@ const(char)* tinyfd_inputBox(
         if (lQuery)
         {
             response("python2-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython2Name);
         if (!isTerminalRunning() && isDarwin())
@@ -5362,8 +5378,8 @@ const(char)* tinyfd_inputBox(
         if (isDarwin())
         {
             strcat(str,
-                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set \
-frontmost of process \\\"Python\\\" to true' ''');");
+                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set " ~
+                   "frontmost of process \\\"Python\\\" to true' ''');");
         }
 
         strcat(str, "res=tkSimpleDialog.askstring(");
@@ -5401,7 +5417,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         if (lQuery)
         {
             response("python3-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython3Name);
         strcat(str,
@@ -5443,7 +5459,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("gdialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             lWasGraphicDialog = 1;
             lWasGdialog = 1;
@@ -5454,7 +5470,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("xdialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             lWasGraphicDialog = 1;
             strcpy(str, "(Xdialog ");
@@ -5464,7 +5480,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("dialog");
-                return (const(char)* )0;
+                return cast(const(char)*)0;
             }
             if (isTerminalRunning())
             {
@@ -5484,7 +5500,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("whiptail");
-                return (const(char)* )0;
+                return cast(const(char)*)0;
             }
             strcpy(str, "(whiptail ");
         }
@@ -5493,7 +5509,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("whiptail");
-                return (const(char)* )0;
+                return cast(const(char)*)0;
             }
             lWasXterm = 1;
             strcpy(str, terminalName());
@@ -5544,15 +5560,15 @@ frontmost of process \\\"Python\\\" to true' ''');");
         }
         if (lWasGraphicDialog)
         {
-            strcat(str, ") 2>/tmp/tinyfd.txt;\
-        if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;\
-        tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
+            strcat(str, ") 2>/tmp/tinyfd.txt;" ~
+                        "if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;" ~
+                        "tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
         }
         else
         {
-            strcat(str, ">/dev/tty ) 2>/tmp/tinyfd.txt;\
-        if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;\
-        tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
+            strcat(str, ">/dev/tty ) 2>/tmp/tinyfd.txt;" ~
+                        "if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;" ~
+                        "tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes");
 
             if (lWasXterm)
             {
@@ -5569,7 +5585,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         if (lQuery)
         {
             response("basicinput");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         lWasBasicXterm = 1;
         strcpy(str, terminalName());
@@ -5608,7 +5624,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         if (lQuery)
         {
             response("no_solution");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         return null;
     }
@@ -5617,7 +5633,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         if (lQuery)
         {
             response("basicinput");
-            return (const(char)* )0;
+            return cast(const(char)*)0;
         }
         if (!gWarningDisplayed && !tinyfd_forceConsole)
         {
@@ -5751,10 +5767,10 @@ const(char)* tinyfd_saveFileDialog(
     const char** aFilterPatterns,
     const char* aSingleFilterDescription)
 {
-    static char lBuff[MAX_PATH_OR_CMD];
+    static char[MAX_PATH_OR_CMD] lBuff;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char str[MAX_PATH_OR_CMD];
-    char lString[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] str;
+    char[MAX_PATH_OR_CMD] lString;
     int i;
     int lWasGraphicDialog = 0;
     int lWasXterm = 0;
@@ -5767,7 +5783,7 @@ const(char)* tinyfd_saveFileDialog(
         if (lQuery)
         {
             response("applescript");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, "osascript ");
         if (!osx9orBetter())
@@ -5804,7 +5820,7 @@ const(char)* tinyfd_saveFileDialog(
         if (lQuery)
         {
             response("kdialog");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
 
         strcpy(str, "kdialog");
@@ -5873,7 +5889,7 @@ const(char)* tinyfd_saveFileDialog(
             if (lQuery)
             {
                 response("zenity");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "zenity");
             if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
@@ -5886,7 +5902,7 @@ const(char)* tinyfd_saveFileDialog(
             if (lQuery)
             {
                 response("matedialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "matedialog");
         }
@@ -5895,7 +5911,7 @@ const(char)* tinyfd_saveFileDialog(
             if (lQuery)
             {
                 response("shellementary");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "shellementary");
         }
@@ -5904,7 +5920,7 @@ const(char)* tinyfd_saveFileDialog(
             if (lQuery)
             {
                 response("qarma");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "qarma");
             if (!getenv("SSH_TTY"))
@@ -5949,7 +5965,7 @@ const(char)* tinyfd_saveFileDialog(
         if (lQuery)
         {
             response("python2-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython2Name);
         if (!isTerminalRunning() && isDarwin())
@@ -5962,8 +5978,8 @@ const(char)* tinyfd_saveFileDialog(
         if (isDarwin())
         {
             strcat(str,
-                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set\
- frontmost of process \\\"Python\\\" to true' ''');");
+                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set " ~
+                   "frontmost of process \\\"Python\\\" to true' ''');");
         }
 
         strcat(str, "print tkFileDialog.asksaveasfilename(");
@@ -6016,7 +6032,7 @@ const(char)* tinyfd_saveFileDialog(
         if (lQuery)
         {
             response("python3-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython3Name);
         strcat(str,
@@ -6073,7 +6089,7 @@ const(char)* tinyfd_saveFileDialog(
             if (lQuery)
             {
                 response("xdialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             lWasGraphicDialog = 1;
             strcpy(str, "(Xdialog ");
@@ -6083,7 +6099,7 @@ const(char)* tinyfd_saveFileDialog(
             if (lQuery)
             {
                 response("dialog");
-                return (const(char)* )0;
+                return cast(const(char)*)0;
             }
             strcpy(str, "(dialog ");
         }
@@ -6092,7 +6108,7 @@ const(char)* tinyfd_saveFileDialog(
             if (lQuery)
             {
                 response("dialog");
-                return (const(char)* )0;
+                return cast(const(char)*)0;
             }
             lWasXterm = 1;
             strcpy(str, terminalName());
@@ -6213,10 +6229,10 @@ const(char)* tinyfd_openFileDialog(
     const char* aSingleFilterDescription,
     const int aAllowMultipleSelects)
 {
-    static char lBuff[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD];
+    static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char str[MAX_PATH_OR_CMD];
-    char lString[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] str;
+    char[MAX_PATH_OR_CMD] lString;
     int i;
     FILE *lIn;
     char* p;
@@ -6231,7 +6247,7 @@ const(char)* tinyfd_openFileDialog(
         if (lQuery)
         {
             response("applescript");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, "osascript ");
         if (!osx9orBetter())
@@ -6300,7 +6316,7 @@ const(char)* tinyfd_openFileDialog(
         if (lQuery)
         {
             response("kdialog");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         lWasKdialog = 1;
 
@@ -6374,7 +6390,7 @@ const(char)* tinyfd_openFileDialog(
             if (lQuery)
             {
                 response("zenity");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "zenity");
             if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
@@ -6387,7 +6403,7 @@ const(char)* tinyfd_openFileDialog(
             if (lQuery)
             {
                 response("matedialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "matedialog");
         }
@@ -6396,7 +6412,7 @@ const(char)* tinyfd_openFileDialog(
             if (lQuery)
             {
                 response("shellementary");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "shellementary");
         }
@@ -6405,7 +6421,7 @@ const(char)* tinyfd_openFileDialog(
             if (lQuery)
             {
                 response("qarma");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "qarma");
             if (!getenv("SSH_TTY"))
@@ -6454,7 +6470,7 @@ const(char)* tinyfd_openFileDialog(
         if (lQuery)
         {
             response("python2-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython2Name);
         if (!isTerminalRunning() && isDarwin())
@@ -6467,8 +6483,8 @@ const(char)* tinyfd_openFileDialog(
         if (isDarwin())
         {
             strcat(str,
-                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set \
-frontmost of process \\\"Python\\\" to true' ''');");
+                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set " ~
+                   "frontmost of process \\\"Python\\\" to true' ''');");
         }
         strcat(str, "lFiles=tkFileDialog.askopenfilename(");
         if (aAllowMultipleSelects)
@@ -6517,17 +6533,22 @@ frontmost of process \\\"Python\\\" to true' ''');");
             strcat(str, ")),");
             strcat(str, "('All files','*'))");
         }
-        strcat(str, ");\
-\nif not isinstance(lFiles, tuple):\n\tprint lFiles\nelse:\
-\n\tlFilesString=''\n\tfor lFile in lFiles:\n\t\tlFilesString+=str(lFile)+'|'\
-\n\tprint lFilesString[:-1]\n\"");
+        strcat(str, `);
+if not isinstance(lFiles, tuple):
+    print lFiles
+else:
+    lFilesString=''
+    for lFile in lFiles:
+        lFilesString += str(lFile) + '|'
+    print lFilesString[:-1]
+"`);
     }
     else if (tkinter3Present())
     {
         if (lQuery)
         {
             response("python3-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython3Name);
         strcat(str,
@@ -6579,10 +6600,15 @@ frontmost of process \\\"Python\\\" to true' ''');");
             strcat(str, ")),");
             strcat(str, "('All files','*'))");
         }
-        strcat(str, ");\
-\nif not isinstance(lFiles, tuple):\n\tprint(lFiles)\nelse:\
-\n\tlFilesString=''\n\tfor lFile in lFiles:\n\t\tlFilesString+=str(lFile)+'|'\
-\n\tprint(lFilesString[:-1])\n\"");
+        strcat(str, `);
+if not isinstance(lFiles, tuple):
+    print(lFiles)
+else:
+    lFilesString = ''
+    for lFile in lFiles:
+        lFilesString += str(lFile) + '|'
+    print(lFilesString[:-1])
+"`);
     }
     else if (xdialogPresent() || dialogName())
     {
@@ -6591,7 +6617,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("xdialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             lWasGraphicDialog = 1;
             strcpy(str, "(Xdialog ");
@@ -6601,7 +6627,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("dialog");
-                return (const(char)* )0;
+                return cast(const(char)*)0;
             }
             strcpy(str, "(dialog ");
         }
@@ -6610,7 +6636,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("dialog");
-                return (const(char)* )0;
+                return cast(const(char)*)0;
             }
             lWasXterm = 1;
             strcpy(str, terminalName());
@@ -6733,9 +6759,9 @@ frontmost of process \\\"Python\\\" to true' ''');");
 
 const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
-    static char lBuff[MAX_PATH_OR_CMD];
+    static char[MAX_PATH_OR_CMD] lBuff;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char str[MAX_PATH_OR_CMD];
+    char[MAX_PATH_OR_CMD] str;
     FILE *lIn;
     const(char)* p;
     int lWasGraphicDialog = 0;
@@ -6747,7 +6773,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
         if (lQuery)
         {
             response("applescript");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, "osascript ");
         if (!osx9orBetter())
@@ -6776,7 +6802,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
         if (lQuery)
         {
             response("kdialog");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, "kdialog");
         if (kdialogPresent() == 2)
@@ -6814,7 +6840,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
             if (lQuery)
             {
                 response("zenity");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "zenity");
             if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
@@ -6827,7 +6853,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
             if (lQuery)
             {
                 response("matedialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "matedialog");
         }
@@ -6836,7 +6862,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
             if (lQuery)
             {
                 response("shellementary");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "shellementary");
         }
@@ -6845,7 +6871,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
             if (lQuery)
             {
                 response("qarma");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "qarma");
             if (!getenv("SSH_TTY"))
@@ -6875,7 +6901,7 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
         if (lQuery)
         {
             response("python2-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython2Name);
         if (!isTerminalRunning() && isDarwin())
@@ -6888,8 +6914,8 @@ const(char)* tinyfd_selectFolderDialog(const char* aTitle, const char* aDefaultP
         if (isDarwin())
         {
             strcat(str,
-                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set \
-frontmost of process \\\"Python\\\" to true' ''');");
+                   "import os;os.system('''/usr/bin/osascript -e 'tell app \\\"Finder\\\" to set " ~
+                   "frontmost of process \\\"Python\\\" to true' ''');");
         }
 
         strcat(str, "print tkFileDialog.askdirectory(");
@@ -6912,7 +6938,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
         if (lQuery)
         {
             response("python3-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython3Name);
         strcat(str,
@@ -6939,7 +6965,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("xdialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             lWasGraphicDialog = 1;
             strcpy(str, "(Xdialog ");
@@ -6949,7 +6975,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("dialog");
-                return (const(char)* )0;
+                return cast(const(char)*)0;
             }
             strcpy(str, "(dialog ");
         }
@@ -6958,7 +6984,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
             if (lQuery)
             {
                 response("dialog");
-                return (const(char)* )0;
+                return cast(const(char)*)0;
             }
             lWasXterm = 1;
             strcpy(str, terminalName());
@@ -7054,16 +7080,16 @@ frontmost of process \\\"Python\\\" to true' ''');");
 const(char)* tinyfd_colorChooser(
     const char* aTitle,
     const char* aDefaultHexRGB,
-    ubyte const aDefaultRGB[3],
-    ubyte aoResultRGB[3])
+    ref const ubyte[3] aDefaultRGB,
+    ref ubyte[3] aoResultRGB)
 {
-    static char lBuff[128];
+    static char[128] lBuff;
     int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char lTmp[128];
-    char str[MAX_PATH_OR_CMD];
-    char lDefaultHexRGB[8];
+    char[128] lTmp;
+    char[MAX_PATH_OR_CMD] str;
+    char[8] lDefaultHexRGB;
     char* lpDefaultHexRGB;
-    ubyte lDefaultRGB[3];
+    ubyte[3] lDefaultRGB;
     const(char)* p;
     FILE *lIn;
     int i;
@@ -7075,7 +7101,7 @@ const(char)* tinyfd_colorChooser(
     if (aDefaultHexRGB)
     {
         Hex2RGB(aDefaultHexRGB, lDefaultRGB);
-        lpDefaultHexRGB = (char*)aDefaultHexRGB;
+        lpDefaultHexRGB = cast(char*)aDefaultHexRGB;
     }
     else
     {
@@ -7083,7 +7109,7 @@ const(char)* tinyfd_colorChooser(
         lDefaultRGB[1] = aDefaultRGB[1];
         lDefaultRGB[2] = aDefaultRGB[2];
         RGB2Hex(aDefaultRGB, lDefaultHexRGB);
-        lpDefaultHexRGB = (char*)lDefaultHexRGB;
+        lpDefaultHexRGB = cast(char*)lDefaultHexRGB;
     }
 
     if (osascriptPresent())
@@ -7091,7 +7117,7 @@ const(char)* tinyfd_colorChooser(
         if (lQuery)
         {
             response("applescript");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         lWasOsascript = 1;
         strcpy(str, "osascript");
@@ -7104,8 +7130,8 @@ const(char)* tinyfd_colorChooser(
         else
         {
             strcat(str,
-                   " -e 'try' -e 'tell app (path to frontmost application as Unicode text) \
-to set mycolor to choose color default color {");
+                   " -e 'try' -e 'tell app (path to frontmost application as Unicode text) " ~
+                   "to set mycolor to choose color default color {");
         }
 
         sprintf(lTmp, "%d", 256 * lDefaultRGB[0]);
@@ -7135,7 +7161,7 @@ to set mycolor to choose color default color {");
         if (lQuery)
         {
             response("kdialog");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, "kdialog");
         if (kdialogPresent() == 2)
@@ -7159,7 +7185,7 @@ to set mycolor to choose color default color {");
             if (lQuery)
             {
                 response("zenity3");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "zenity");
             if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
@@ -7172,7 +7198,7 @@ to set mycolor to choose color default color {");
             if (lQuery)
             {
                 response("matedialog");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "matedialog");
         }
@@ -7181,7 +7207,7 @@ to set mycolor to choose color default color {");
             if (lQuery)
             {
                 response("shellementary");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "shellementary");
         }
@@ -7190,7 +7216,7 @@ to set mycolor to choose color default color {");
             if (lQuery)
             {
                 response("qarma");
-                return (const(char)* )1;
+                return cast(const(char)*)1;
             }
             strcpy(str, "qarma");
             if (!getenv("SSH_TTY"))
@@ -7215,7 +7241,7 @@ to set mycolor to choose color default color {");
         if (lQuery)
         {
             response("xdialog");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         lWasXdialog = 1;
         strcpy(str, "Xdialog --colorsel \"");
@@ -7234,7 +7260,7 @@ to set mycolor to choose color default color {");
         if (lQuery)
         {
             response("python2-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython2Name);
         if (!isTerminalRunning() && isDarwin())
@@ -7248,8 +7274,8 @@ to set mycolor to choose color default color {");
         if (isDarwin())
         {
             strcat(str,
-                   "import os;os.system('''osascript -e 'tell app \\\"Finder\\\" to set \
-frontmost of process \\\"Python\\\" to true' ''');");
+                   "import os;os.system('''osascript -e 'tell app \\\"Finder\\\" to set " ~
+                   "frontmost of process \\\"Python\\\" to true' ''');");
         }
 
         strcat(str, "res=tkColorChooser.askcolor(color='");
@@ -7262,15 +7288,17 @@ frontmost of process \\\"Python\\\" to true' ''');");
             strcat(str, aTitle);
             strcat(str, "'");
         }
-        strcat(str, ");\
-\nif res[1] is not None:\n\tprint res[1]\"");
+        strcat(str, `);
+if res[1] is not None:
+    print res[1]
+"`);
     }
     else if (tkinter3Present())
     {
         if (lQuery)
         {
             response("python3-tkinter");
-            return (const(char)* )1;
+            return cast(const(char)*)1;
         }
         strcpy(str, gPython3Name);
         strcat(str,
@@ -7285,8 +7313,10 @@ frontmost of process \\\"Python\\\" to true' ''');");
             strcat(str, aTitle);
             strcat(str, "'");
         }
-        strcat(str, ");\
-\nif res[1] is not None:\n\tprint(res[1])\"");
+        strcat(str, `);
+if res[1] is not None:
+    print(res[1])
+"`);
     }
     else
     {
@@ -7374,6 +7404,4 @@ frontmost of process \\\"Python\\\" to true' ''');");
     /* printf( "lBuff: %s\n" , lBuff ) ; */
     return lBuff;
 }
-#endif /* _WIN32 */
 
-+/
