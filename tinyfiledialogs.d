@@ -223,121 +223,158 @@ c_str tinyfd_colorChooser(
     ref ubyte[3] resultRGB,
 );
 
-/**************************** IMPLEMENTATION ****************************/
+/**** Constants and variables ****/
+__gshared:
 
+/// Contains tinyfd current version number
+immutable char[8] tinyfd_version = "3.3.9";
 
+/// Info about requirements for a platform
+version (Windows)
+immutable char[] tinyfd_needs =
+` ___________
+/           \
+| tiny file |
+|  dialogs  |
+\_____  ____/
+      \|
+tiny file dialogs on Windows needs:
+   a graphic display
+or dialog.exe (enhanced console mode)
+or a console for basic input`;
+else
+immutable char[] tinyfd_needs =
+` ___________
+/           \
+| tiny file |
+|  dialogs  |
+\_____  ____/
+      \|
+tiny file dialogs on UNIX needs:
+   applescript
+or kdialog
+or zenity (or matedialog or qarma)
+or python (2 or 3)
+ + tkinter + python-dbus (optional)
+or dialog (opens console if needed)
+or xterm + bash
+   (opens console for basic input)
+or existing console for basic input`;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <sys/stat.h>
-
-/* #define TINYFD_NOLIB */
-
-#ifdef _WIN32
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0500
-#endif
-#ifndef TINYFD_NOLIB
-#include <windows.h>
-/*#define TINYFD_NOSELECTFOLDERWIN*/
-#ifndef TINYFD_NOSELECTFOLDERWIN
-#include <shlobj.h>
-#endif /*TINYFD_NOSELECTFOLDERWIN*/
-#endif
-#include <conio.h>
-#include <commdlg.h>
-#define TINYFD_NOCCSUNICODE
-#define SLASH "\\"
-#else
-#include <limits.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <termios.h>
-#include <sys/utsname.h>
-#include <signal.h>
-#define SLASH "/"
-#endif /* _WIN32 */
-
-#define MAX_PATH_OR_CMD 1024 /* _MAX_PATH or MAX_PATH */
-#define MAX_MULTIPLE_FILES 32
-
-char const tinyfd_version[8] = "3.3.9";
-
+/// 0 (default) or 1: on unix, prints the command line calls
 int tinyfd_verbose = 0;
+/// 1 (default) or 0: on unix, hide errors and warnings from called dialog
 int tinyfd_silent = 1;
 
-#if defined(TINYFD_NOLIB) && defined(_WIN32)
-int tinyfd_forceConsole = 1;
-#else
-int tinyfd_forceConsole = 0;
-#endif
+/** For unix & windows: 0 (graphic mode, default) or 1 (console mode).
 
-char tinyfd_response[1024];
+    0 - try to use a graphic solution, if it fails then it uses console mode.
+    1 - forces all dialogs into console mode even when an X server is present,
+    if the package dialog (and a console is present) or dialog.exe is installed.
+    On windows it only make sense for console applications.
+*/
+version (Windows)
+{
+    version (TINYFD_NOLIB)
+        int tinyfd_forceConsole = 1;
+    else
+        int tinyfd_forceConsole = 0;
+}
+else
+    int tinyfd_forceConsole = 0;
 
-#if defined(TINYFD_NOLIB) && defined(_WIN32)
-static int gWarningDisplayed = 1;
-#else
-static int gWarningDisplayed = 0;
-#endif
+/** If you pass "tinyfd_query" as `title`, the functions will not display
+    the dialogs but will return 0 for console mode, 1 for graphic mode.
+    `tinyfd_response` is then filled with the retain solution.
+    possible values for `tinyfd_response` are (all lowercase),
+    for graphic mode: `windows_wchar windows
+        applescript kdialog zenity zenity3 matedialog qarma
+        python2-tkinter python3-tkinter python-dbus perl-dbus
+        gxmessage gmessage xmessage xdialog gdialog`,
+    for console mode: `dialog whiptail basicinput no_solution`
 
-static char const gTitle[] = "missing software! (we will try basic console input)";
+    Example:
+    ---
+    import core.stdc.string;
 
-#ifdef _WIN32
-char const tinyfd_needs[] = "\
- ___________\n\
-/           \\ \n\
-| tiny file |\n\
-|  dialogs  |\n\
-\\_____  ____/\n\
-      \\|\
-\ntiny file dialogs on Windows needs:\
-\n   a graphic display\
-\nor dialog.exe (enhanced console mode)\
-\nor a console for basic input";
-#else
-char const tinyfd_needs[] = "\
- ___________\n\
-/           \\ \n\
-| tiny file |\n\
-|  dialogs  |\n\
-\\_____  ____/\n\
-      \\|\
-\ntiny file dialogs on UNIX needs:\
-\n   applescript\
-\nor kdialog\
-\nor zenity (or matedialog or qarma)\
-\nor python (2 or 3)\
-\n + tkinter + python-dbus (optional)\
-\nor dialog (opens console if needed)\
-\nor xterm + bash\
-\n   (opens console for basic input)\
-\nor existing console for basic input";
-#endif
+    char[1024] buf;
+    c_str mode = tinyfd_inputBox("tinyfd_query", null, null);
 
+    strcpy(buf.ptr, "v");
+    strcat(buf.ptr, tinyfd_version.ptr);
+    strcat(buf.ptr, "\ n");
+    if (mode)
+        strcat(buf.ptr, "graphic mode: ");
+    else
+        strcat(buf.ptr, "console mode: ");
+    strcat(buf.ptr, tinyfd_response.ptr);
+    strcat(buf.ptr, "\ n");
+    strcat(buf.ptr, tinyfd_needs.ptr + 78);
+    tinyfd_messageBox("Hello", buf.ptr, "ok", "info", 0);
+    ---
+*/
+char[1024] tinyfd_response;
+
+/**************************** IMPLEMENTATION ****************************/
+
+private:
+import core.stdc.ctype;
+import core.stdc.stdio;
+import core.stdc.stdlib;
+import core.stdc.string;
+
+// version = TINYFD_NOLIB;
+// version = TINYFD_NOSELECTFOLDERWIN;
+version = TINYFD_NOCCSUNICODE;
+
+version (Windows)
+{
+    import core.sys.windows.commdlg;
+    import core.sys.windows.stat;
+    import core.sys.windows.w32api;
+
+    static assert(_WIN32_WINNT >= 0x0500);
+
+    enum SLASH = "\\";
+
+    version (TINYFD_NOLIB)
+    {
+        int gWarningDisplayed = 1;
+    }
+    else
+    {
+        import core.sys.windows.windows;
+
+        int gWarningDisplayed = 0;
+    }
+
+    version (TINYFD_NOSELECTFOLDERWIN) {}
+    else
+        import core.sys.windows.shlobj;
+}
+else // unix
+{
+    import core.stdc.limits;
+    import core.sys.posix.dirent;
+    import core.sys.posix.signal;
+    import core.sys.posix.sys.stat;
+    import core.sys.posix.sys.utsname;
+    import core.sys.posix.termios;
+    import core.sys.posix.unistd;
+
+    enum SLASH = "/";
+    int gWarningDisplayed = 0;
+}
+
+enum int MAX_PATH_OR_CMD = 1024; /* _MAX_PATH or MAX_PATH */
+enum int MAX_MULTIPLE_FILES = 32;
+
+immutable char[] gTitle = "missing software! (we will try basic console input)";
+
+
+
+
+/+
 #define SOME(str) ((str) != NULL && (str)[0] != '\0')
 
 static void response(char const *const message)
@@ -1856,15 +1893,6 @@ static char const *openFileDialogWinGui8(
 }
 
 #ifndef TINYFD_NOSELECTFOLDERWIN
-static int __stdcall BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
-{
-    if (uMsg == BFFM_INITIALIZED)
-    {
-        SendMessage(hwnd, BFFM_SETSELECTION, TRUE, pData);
-    }
-    return 0;
-}
-
 static int __stdcall BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
 {
     if (uMsg == BFFM_INITIALIZED)
@@ -7339,3 +7367,4 @@ frontmost of process \\\"Python\\\" to true' ''');");
 }
 #endif /* _WIN32 */
 
++/
