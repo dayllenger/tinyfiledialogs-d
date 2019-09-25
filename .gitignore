@@ -1,0 +1,12 @@
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+
+.dub/
+*.~*
+*.*~
