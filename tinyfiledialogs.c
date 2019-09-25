@@ -24,23 +24,15 @@ misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef __sun
-#define _POSIX_C_SOURCE 2 /* to accept POSIX 2 in old ANSI C standards */
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <sys/stat.h>
 
-#include "tinyfiledialogs.h"
 /* #define TINYFD_NOLIB */
 
 #ifdef _WIN32
-#ifdef __BORLANDC__
-#define _getch getch
-#endif
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0500
 #endif
@@ -58,10 +50,10 @@ misrepresented as being the original software.
 #else
 #include <limits.h>
 #include <unistd.h>
-#include <dirent.h> /* on old systems try <sys/dir.h> instead */
+#include <dirent.h>
 #include <termios.h>
 #include <sys/utsname.h>
-#include <signal.h> /* on old systems try <sys/signal.h> instead */
+#include <signal.h>
 #define SLASH "/"
 #endif /* _WIN32 */
 
@@ -119,12 +111,6 @@ char const tinyfd_needs[] = "\
 \nor xterm + bash\
 \n   (opens console for basic input)\
 \nor existing console for basic input";
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(disable : 4996) /* allows usage of strncpy, strcpy, strcat, sprintf, fopen */
-#pragma warning(disable : 4100) /* allows usage of strncpy, strcpy, strcat, sprintf, fopen */
-#pragma warning(disable : 4706) /* allows usage of strncpy, strcpy, strcat, sprintf, fopen */
 #endif
 
 #define SOME(str) ((str) != NULL && (str)[0] != '\0')
@@ -7127,9 +7113,3 @@ frontmost of process \\\"Python\\\" to true' ''');");
     return lBuff;
 }
 #endif /* _WIN32 */
-
-#ifdef _MSC_VER
-#pragma warning(default : 4996)
-#pragma warning(default : 4100)
-#pragma warning(default : 4706)
-#endif

@@ -28,23 +28,10 @@ misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef TINYFILEDIALOGS_H
-#define TINYFILEDIALOGS_H
-
 /* #define TINYFD_NOLIB */
 /* On windows, define TINYFD_NOLIB here
 if you don't want to include the code creating the graphic dialogs.
 Then you won't need to link against Comdlg32.lib and Ole32.lib */
-
-/* if tinydialogs.c is compiled as C++ code rather than C code,
-you may need to comment out:
-extern "C" {
-and the corresponding closing bracket near the end of this file:
-}
-*/
-#ifdef	__cplusplus
-extern "C" {
-#endif
 
 extern char const tinyfd_version[8]; /* contains tinyfd current version number */
 extern char const tinyfd_needs[]; /* info about requirements */
@@ -72,12 +59,6 @@ for graphic mode:
   gxmessage gmessage xmessage xdialog gdialog
 for console mode:
   dialog whiptail basicinput no_solution */
-
-#ifdef	__cplusplus
-}
-#endif
-
-#endif /* TINYFILEDIALOGS_H */
 
 /*
 - This is not for android nor ios.
