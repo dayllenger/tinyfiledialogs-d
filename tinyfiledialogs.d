@@ -628,7 +628,7 @@ int fileExists(const char* aFilePathAndName)
 void wipefile(const char* aFilename)
 {
     int i;
-    struct stat st;
+    stat st;
     FILE *lIn;
 
     if (stat(aFilename, &st) == 0)
@@ -675,7 +675,7 @@ int replaceChr(char* aString, const char aOldChr, const char aNewChr)
 
 int dirExists(const char* aDirPath)
 {
-    struct stat lInfo;
+    stat lInfo;
 
     if (!aDirPath || !strlen(aDirPath))
         return 0;
@@ -704,7 +704,7 @@ void tinyfd_beep()
 void wipefileW(const wchar* aFilename)
 {
     int i;
-    struct _stat st;
+    _stat st;
     FILE *lIn;
 
     if (_wstat(aFilename, &st) == 0)
@@ -911,7 +911,7 @@ char* utf16toMbcs(const wchar* aUtf16string)
 
 int dirExists(const char* aDirPath)
 {
-    struct _stat lInfo;
+    _stat lInfo;
     wchar* lTmpWChar;
     int lStatRet;
     int lDirLen;
@@ -937,7 +937,7 @@ int dirExists(const char* aDirPath)
 
 int fileExists(const char* aFilePathAndName)
 {
-    struct _stat lInfo;
+    _stat lInfo;
     wchar* lTmpWChar;
     int lStatRet;
     FILE *lIn;
@@ -2988,7 +2988,7 @@ char gPythonName[16];
 int isDarwin()
 {
     static int ret = -1;
-    struct utsname lUtsname;
+    utsname lUtsname;
     if (ret < 0)
     {
         ret = !uname(&lUtsname) && !strcmp(lUtsname.sysname, "Darwin");
@@ -3858,8 +3858,8 @@ int tinyfd_messageBox(
     int lWasXterm = 0;
     int lResult;
     char lChar;
-    struct termios infoOri;
-    struct termios info;
+    termios infoOri;
+    termios info;
     size_t lTitleLen;
     size_t lMessageLen;
 
@@ -5132,8 +5132,8 @@ const(char)* tinyfd_inputBox(
     int lWasGraphicDialog = 0;
     int lWasXterm = 0;
     int lWasBasicXterm = 0;
-    struct termios oldt;
-    struct termios newt;
+    termios oldt;
+    termios newt;
     char* lEOF;
     size_t lTitleLen;
     size_t lMessageLen;
