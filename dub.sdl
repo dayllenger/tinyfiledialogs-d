@@ -3,5 +3,8 @@ description "Single-file library for cross-platform native dialogs."
 authors "Guillaume Vareille" "dayllenger"
 license "Zlib"
 
+importPaths "."
 sourceFiles "tinyfiledialogs.d"
 targetType "staticLibrary"
+
+buildOptions "betterC"

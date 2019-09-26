@@ -8,5 +8,6 @@
 *.exe
 
 .dub/
+dub.selections.json
 *.~*
 *.*~
