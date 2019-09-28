@@ -652,7 +652,7 @@ void wipefile(const char* aFilename)
         struct_stat st;
     else
         stat_t st;
-    FILE *lIn;
+    FILE* lIn;
 
     if (stat(aFilename, &st) == 0)
     {
@@ -809,7 +809,7 @@ void wipefileW(const wchar* aFilename)
 {
     int i;
     struct_stat st;
-    FILE *lIn;
+    FILE* lIn;
 
     if (_wstat(aFilename, &st) == 0)
     {
@@ -1234,8 +1234,8 @@ const(wchar)* _inputBoxW(
 {
     static wchar[MAX_PATH_OR_CMD] lBuff = '\0';
     wchar* str;
-    FILE *lIn;
-    FILE *lFile;
+    FILE* lIn;
+    FILE* lFile;
     int lResult;
     size_t lTitleLen;
     size_t lMessageLen;
@@ -2061,7 +2061,7 @@ int dialogPresent()
 {
     static int lDialogPresent = -1;
     char[MAX_PATH_OR_CMD] lBuff = '\0';
-    FILE *lIn;
+    FILE* lIn;
     const char* lString = "dialog.exe";
     if (lDialogPresent < 0)
     {
@@ -2099,7 +2099,7 @@ int messageBoxWinConsole(
     char[MAX_PATH_OR_CMD] lDialogFile_buf = '\0';
     char* str = str_buf.ptr;
     char* lDialogFile = lDialogFile_buf.ptr;
-    FILE *lIn;
+    FILE* lIn;
     char[MAX_PATH_OR_CMD] lBuff = '\0';
 
     strcpy(str, "dialog ");
@@ -2214,7 +2214,7 @@ const(char)* inputBoxWinConsole(
     char[MAX_PATH_OR_CMD] lDialogFile_buf = '\0';
     char* str = str_buf.ptr;
     char* lDialogFile = lDialogFile_buf.ptr;
-    FILE *lIn;
+    FILE* lIn;
     int lResult;
 
     strcpy(lDialogFile, getenv("USERPROFILE"));
@@ -2307,7 +2307,7 @@ const(char)* saveFileDialogWinConsole(
     char[MAX_PATH_OR_CMD] lPathAndFile_buf = '\0';
     char* str = str_buf.ptr;
     char* lPathAndFile = lPathAndFile_buf.ptr;
-    FILE *lIn;
+    FILE* lIn;
 
     strcpy(str, "dialog ");
     if (some(aTitle))
@@ -2374,7 +2374,7 @@ const(char)* openFileDialogWinConsole(
     char[MAX_PATH_OR_CMD] lFilterPatterns = '\0';
     char[MAX_PATH_OR_CMD] str_buf = '\0';
     char* str = str_buf.ptr;
-    FILE *lIn;
+    FILE* lIn;
 
     strcpy(str, "dialog ");
     if (some(aTitle))
@@ -2436,7 +2436,7 @@ const(char)* selectFolderDialogWinConsole(
     char[MAX_PATH_OR_CMD] lString_buf = '\0';
     char* str = str_buf.ptr;
     char* lString = lString_buf.ptr;
-    FILE *lIn;
+    FILE* lIn;
 
     strcpy(str, "dialog ");
     if (some(aTitle))
@@ -2968,7 +2968,7 @@ const(char)* getVersion(const char* aExecutable) /*version must be first numeral
 {
     static char[MAX_PATH_OR_CMD] lBuff = '\0';
     char[MAX_PATH_OR_CMD] lTestedString = '\0';
-    FILE *lIn;
+    FILE* lIn;
     char* lTmp;
 
     strcpy(lTestedString.ptr, aExecutable);
@@ -3328,7 +3328,7 @@ int perlPresent()
 {
     static int ret = -1;
     char[MAX_PATH_OR_CMD] lBuff = 0;
-    FILE *lIn;
+    FILE* lIn;
 
     if (ret < 0)
     {
@@ -3352,7 +3352,7 @@ int afplayPresent()
 {
     static int ret = -1;
     char[MAX_PATH_OR_CMD] lBuff = '\0';
-    FILE *lIn;
+    FILE* lIn;
 
     if (ret < 0)
     {
@@ -3447,7 +3447,7 @@ int zenity3Present()
 {
     static int ret = -1;
     char[MAX_PATH_OR_CMD] lBuff = '\0';
-    FILE *lIn;
+    FILE* lIn;
     int lIntTmp;
 
     if (ret < 0)
@@ -3488,7 +3488,7 @@ int kdialogPresent()
 {
     static int ret = -1;
     char[MAX_PATH_OR_CMD] lBuff = '\0';
-    FILE *lIn;
+    FILE* lIn;
     char* lDesktop;
 
     if (ret < 0)
@@ -3542,7 +3542,7 @@ int osx9orBetter()
 {
     static int ret = -1;
     char[MAX_PATH_OR_CMD] lBuff = '\0';
-    FILE *lIn;
+    FILE* lIn;
     int V, v;
 
     if (ret < 0)
@@ -3718,7 +3718,7 @@ except:
 
 void sigHandler(int sig)
 {
-    FILE *lIn = popen("pactl unload-module module-sine", "r");
+    FILE* lIn = popen("pactl unload-module module-sine", "r");
     if (lIn)
     {
         pclose(lIn);
@@ -3729,7 +3729,7 @@ void _beep()
 {
     char[256] str_buf = '\0';
     char* str = str_buf.ptr;
-    FILE *lIn;
+    FILE* lIn;
 
     if (osascriptPresent())
     {
@@ -3788,7 +3788,7 @@ int _messageBox(
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char* str;
     char* lpDialogString;
-    FILE *lIn;
+    FILE* lIn;
     bool lWasGraphicDialog;
     bool lWasXterm;
     int lResult;
@@ -4844,7 +4844,7 @@ int _notifyPopup(
     char[MAX_PATH_OR_CMD] lBuff = '\0';
     char* str;
     char* lpDialogString;
-    FILE *lIn;
+    FILE* lIn;
     size_t lTitleLen;
     size_t lMessageLen;
     bool lQuery;
@@ -5084,7 +5084,7 @@ const(char*) _inputBox(
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char* str;
     char* lpDialogString;
-    FILE *lIn;
+    FILE* lIn;
     int lResult;
     bool lWasGdialog;
     bool lWasGraphicDialog;
@@ -5713,7 +5713,7 @@ const(char*) _saveFileDialog(
     bool lWasGraphicDialog;
     bool lWasXterm;
     const(char)* p;
-    FILE *lIn;
+    FILE* lIn;
     lBuff[0] = '\0';
 
     if (osascriptPresent())
@@ -6172,7 +6172,7 @@ const(char*) _openFileDialog(
     char* str = str_buf1.ptr;
     char* lString = str_buf2.ptr;
     int i;
-    FILE *lIn;
+    FILE* lIn;
     char* p;
     const(char)* p2;
     bool lWasKdialog;
@@ -6702,7 +6702,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char[MAX_PATH_OR_CMD] str_buf = '\0';
     char* str = str_buf.ptr;
-    FILE *lIn;
+    FILE* lIn;
     const(char)* p;
     bool lWasGraphicDialog;
     bool lWasXterm;
@@ -7031,7 +7031,7 @@ const(char*) _colorChooser(
     char* lpDefaultHexRGB;
     ubyte[3] lDefaultRGB;
     const(char)* p;
-    FILE *lIn;
+    FILE* lIn;
     int i;
     bool lWasZenity3;
     bool lWasOsascript;
