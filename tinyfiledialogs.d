@@ -469,7 +469,12 @@ enum int MAX_MULTIPLE_FILES = 32;
 
 immutable char[] gTitle = "missing software! (we will try basic console input)";
 
-bool SOME(const char* str)
+bool some(const char* str)
+{
+    return str && str[0] != '\0';
+}
+
+bool wsome(const wchar* str)
 {
     return str && str[0] != '\0';
 }
@@ -559,7 +564,7 @@ char* getLastName(
 
 void ensureFinalSlash(char* aioString)
 {
-    if (SOME(aioString))
+    if (some(aioString))
     {
         char* lastcar = aioString + strlen(aioString) - 1;
         if (strncmp(lastcar, SLASH, 1))
@@ -637,7 +642,7 @@ void replaceSubStr(const char* aSource,
 
 bool filenameValid(const char* aFileNameWithoutPath)
 {
-    return SOME(aFileNameWithoutPath) && !strpbrk(aFileNameWithoutPath, "\\/:*?\"<>|");
+    return some(aFileNameWithoutPath) && !strpbrk(aFileNameWithoutPath, "\\/:*?\"<>|");
 }
 
 void wipefile(const char* aFilename)
@@ -666,20 +671,13 @@ void wipefile(const char* aFilename)
 /* source and destination can be the same or ovelap*/
 const(char)* ensureFilesExist(char* aDestination, const char* aSourcePathsAndNames)
 {
+    if (!some(aSourcePathsAndNames))
+        return null;
+
     char* lDestination = aDestination;
     const(char)* p;
     const(char)* p2;
-    size_t lLen;
-
-    if (!aSourcePathsAndNames)
-    {
-        return null;
-    }
-    lLen = strlen(aSourcePathsAndNames);
-    if (!lLen)
-    {
-        return null;
-    }
+    size_t lLen = strlen(aSourcePathsAndNames);
 
     p = aSourcePathsAndNames;
     while ((p2 = strchr(p, '|')) !is null)
@@ -714,7 +712,7 @@ version (Windows)
     {
         bool fileExists(const char* aFilePathAndName)
         {
-            if (!aFilePathAndName || !strlen(aFilePathAndName))
+            if (!some(aFilePathAndName))
                 return false;
 
             if (1) // was tinyfd_winUtf8
@@ -731,7 +729,7 @@ version (Windows)
     {
         bool fileExists(const char* aFilePathAndName)
         {
-            if (!aFilePathAndName || !strlen(aFilePathAndName))
+            if (!some(aFilePathAndName))
                 return false;
 
             struct_stat lInfo;
@@ -746,7 +744,7 @@ else // unix
 {
     bool fileExists(const char* aFilePathAndName)
     {
-        if (!aFilePathAndName || !strlen(aFilePathAndName))
+        if (!some(aFilePathAndName))
             return false;
 
         FILE* lIn = fopen(aFilePathAndName, "r");
@@ -781,10 +779,10 @@ version (TINYFD_NOLIB) {
 
 bool dirExists(const char* aDirPath)
 {
-    stat lInfo;
-
-    if (!aDirPath || !strlen(aDirPath))
+    if (!some(aDirPath))
         return false;
+
+    stat lInfo;
     if (stat(aDirPath, &lInfo) != 0)
         return false;
     else if (1) // was tinyfd_winUtf8
@@ -964,11 +962,9 @@ char* utf16to8(const wchar* aUtf16string)
 
 bool dirExists(const char* aDirPath)
 {
-    if (!aDirPath)
+    if (!some(aDirPath))
         return false;
     size_t lDirLen = strlen(aDirPath);
-    if (!lDirLen)
-        return true;
     if (lDirLen == 2 && aDirPath[1] == ':')
         return true;
 
@@ -1014,7 +1010,7 @@ extern (Windows) int EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 
 void hiddenConsoleW(const wchar* aString, const wchar* aDialogTitle, const int aInFront)
 {
-    if (!aString || !wcslen(aString))
+    if (!wsome(aString))
         return;
 
     STARTUPINFOW StartupInfo;
@@ -1183,19 +1179,19 @@ int _notifyPopupW(
 "$balloon.ShowBalloonTip(5000)};" ~
 "Show-BalloonTip");
 
-    if (aTitle && wcslen(aTitle))
+    if (wsome(aTitle))
     {
         wcscat(str, " -Title '");
         wcscat(str, aTitle);
         wcscat(str, "'");
     }
-    if (aMessage && wcslen(aMessage))
+    if (wsome(aMessage))
     {
         wcscat(str, " -Message '");
         wcscat(str, aMessage);
         wcscat(str, "'");
     }
-    if (aMessage && wcslen(aIconType))
+    if (wsome(aIconType))
     {
         wcscat(str, " -IconType '");
         wcscat(str, aIconType);
@@ -1276,14 +1272,14 @@ const(wchar)* _inputBoxW(
     if (aDefaultInput)
     {
         wcscpy(str, "Dim result:result=InputBox(\"");
-        if (aMessage && wcslen(aMessage))
+        if (wsome(aMessage))
         {
             wcscpy(lBuff.ptr, aMessage);
             replaceWchar(lBuff.ptr, '\n', ' ');
             wcscat(str, lBuff.ptr);
         }
         wcscat(str, "\",\"tinyfiledialogsTopWindow\",\"");
-        if (aDefaultInput && wcslen(aDefaultInput))
+        if (wsome(aDefaultInput))
         {
             wcscpy(lBuff.ptr, aDefaultInput);
             replaceWchar(lBuff.ptr, '\n', ' ');
@@ -1565,7 +1561,7 @@ const(wchar)* _saveFileDialogW(
 
     if (aNumOfFilterPatterns > 0)
     {
-        if (aSingleFilterDescription && wcslen(aSingleFilterDescription))
+        if (wsome(aSingleFilterDescription))
         {
             wcscpy(lFilterPatterns, aSingleFilterDescription);
             wcscat(lFilterPatterns, "\n");
@@ -1577,7 +1573,7 @@ const(wchar)* _saveFileDialogW(
             wcscat(lFilterPatterns, aFilterPatterns[i]);
         }
         wcscat(lFilterPatterns, "\n");
-        if (!(aSingleFilterDescription && wcslen(aSingleFilterDescription)))
+        if (!wsome(aSingleFilterDescription))
         {
             wcscpy(str.ptr, lFilterPatterns);
             wcscat(lFilterPatterns, str.ptr);
@@ -1604,7 +1600,7 @@ const(wchar)* _saveFileDialogW(
     ofn.lpstrFileTitle = null;
     ofn.nMaxFileTitle = MAX_PATH_OR_CMD / 2;
     ofn.lpstrInitialDir = wcslen(lDirname.ptr) ? lDirname.ptr : null;
-    ofn.lpstrTitle = aTitle && wcslen(aTitle) ? aTitle : null;
+    ofn.lpstrTitle = wsome(aTitle) ? aTitle : null;
     ofn.Flags = OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST;
     ofn.nFileOffset = 0;
     ofn.nFileExtension = 0;
@@ -1718,7 +1714,7 @@ const(wchar)* _openFileDialogW(
 
     if (aNumOfFilterPatterns > 0)
     {
-        if (aSingleFilterDescription && wcslen(aSingleFilterDescription))
+        if (wsome(aSingleFilterDescription))
         {
             wcscpy(lFilterPatterns, aSingleFilterDescription);
             wcscat(lFilterPatterns, "\n");
@@ -1730,7 +1726,7 @@ const(wchar)* _openFileDialogW(
             wcscat(lFilterPatterns, aFilterPatterns[i]);
         }
         wcscat(lFilterPatterns, "\n");
-        if (!(aSingleFilterDescription && wcslen(aSingleFilterDescription)))
+        if (!wsome(aSingleFilterDescription))
         {
             wcscpy(str.ptr, lFilterPatterns);
             wcscat(lFilterPatterns, str.ptr);
@@ -1756,7 +1752,7 @@ const(wchar)* _openFileDialogW(
     ofn.lpstrFileTitle = null;
     ofn.nMaxFileTitle = MAX_PATH_OR_CMD / 2;
     ofn.lpstrInitialDir = wcslen(lDirname.ptr) ? lDirname.ptr : null;
-    ofn.lpstrTitle = aTitle && wcslen(aTitle) ? aTitle : null;
+    ofn.lpstrTitle = wsome(aTitle) ? aTitle : null;
     ofn.Flags = OFN_EXPLORER | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
     ofn.nFileOffset = 0;
     ofn.nFileExtension = 0;
@@ -1903,7 +1899,7 @@ const(wchar)* tinyfd_selectFolderDialogW(const wchar* aTitle, const wchar* aDefa
     bInfo.hwndOwner = GetForegroundWindow();
     bInfo.pidlRoot = null;
     bInfo.pszDisplayName = lBuff.ptr;
-    bInfo.lpszTitle = aTitle && wcslen(aTitle) ? aTitle : null;
+    bInfo.lpszTitle = wsome(aTitle) ? aTitle : null;
     if (lHResult == S_OK || lHResult == S_FALSE)
     {
         bInfo.ulFlags = BIF_USENEWUI;
@@ -2107,7 +2103,7 @@ int messageBoxWinConsole(
     char[MAX_PATH_OR_CMD] lBuff = '\0';
 
     strcpy(str, "dialog ");
-    if (SOME(aTitle))
+    if (some(aTitle))
     {
         strcat(str, "--title \"");
         strcat(str, aTitle);
@@ -2152,7 +2148,7 @@ int messageBoxWinConsole(
     }
 
     strcat(str, "\"");
-    if (SOME(aMessage))
+    if (some(aMessage))
     {
         replaceSubStr(aMessage, "\n", "\\n", lBuff.ptr);
         strcat(str, lBuff.ptr);
@@ -2192,7 +2188,7 @@ int messageBoxWinConsole(
     removeLastNL(lBuff.ptr);
 
     /* if (tinyfd_verbose) printf("lBuff: %s\n", lBuff.ptr); */
-    if (!strlen(lBuff.ptr))
+    if (!some(lBuff.ptr))
     {
         return 0;
     }
@@ -2228,7 +2224,7 @@ const(char)* inputBoxWinConsole(
     strcat(str, " & ");
 
     strcat(str, "dialog ");
-    if (SOME(aTitle))
+    if (some(aTitle))
     {
         strcat(str, "--title \"");
         strcat(str, aTitle);
@@ -2253,12 +2249,12 @@ const(char)* inputBoxWinConsole(
         strcat(str, "--inputbox");
     }
     strcat(str, " \"");
-    if (SOME(aMessage))
+    if (some(aMessage))
     {
         strcat(str, aMessage);
     }
     strcat(str, "\" 10 60 ");
-    if (SOME(aDefaultInput))
+    if (some(aDefaultInput))
     {
         strcat(str, "\"");
         strcat(str, aDefaultInput);
@@ -2314,7 +2310,7 @@ const(char)* saveFileDialogWinConsole(
     FILE *lIn;
 
     strcpy(str, "dialog ");
-    if (SOME(aTitle))
+    if (some(aTitle))
     {
         strcat(str, "--title \"");
         strcat(str, aTitle);
@@ -2327,7 +2323,7 @@ const(char)* saveFileDialogWinConsole(
     strcat(str, "\" ");
 
     strcat(str, "--fselect \"");
-    if (SOME(aDefaultPathAndFile))
+    if (some(aDefaultPathAndFile))
     {
         /* dialog.exe uses unix separators even on windows */
         strcpy(lPathAndFile, aDefaultPathAndFile);
@@ -2362,7 +2358,7 @@ const(char)* saveFileDialogWinConsole(
     replaceChr(aoBuff, '/', '\\');
     /* printf( "aoBuff: %s\n" , aoBuff ) ; */
     getLastName(str, aoBuff);
-    if (!strlen(str))
+    if (!some(str))
     {
         return null;
     }
@@ -2381,7 +2377,7 @@ const(char)* openFileDialogWinConsole(
     FILE *lIn;
 
     strcpy(str, "dialog ");
-    if (SOME(aTitle))
+    if (some(aTitle))
     {
         strcat(str, "--title \"");
         strcat(str, aTitle);
@@ -2394,7 +2390,7 @@ const(char)* openFileDialogWinConsole(
     strcat(str, "\" ");
 
     strcat(str, "--fselect \"");
-    if (SOME(aDefaultPathAndFile))
+    if (some(aDefaultPathAndFile))
     {
         /* dialog.exe uses unix separators even on windows */
         strcpy(lFilterPatterns.ptr, aDefaultPathAndFile);
@@ -2443,7 +2439,7 @@ const(char)* selectFolderDialogWinConsole(
     FILE *lIn;
 
     strcpy(str, "dialog ");
-    if (SOME(aTitle))
+    if (some(aTitle))
     {
         strcat(str, "--title \"");
         strcat(str, aTitle);
@@ -2456,7 +2452,7 @@ const(char)* selectFolderDialogWinConsole(
     strcat(str, "\" ");
 
     strcat(str, "--dselect \"");
-    if (SOME(aDefaultPath))
+    if (some(aDefaultPath))
     {
         /* dialog.exe uses unix separators even on windows */
         strcpy(lString, aDefaultPath);
@@ -2536,7 +2532,7 @@ int _messageBox(
             printf("\n\n%s\n", gTitle.ptr);
             printf("%s\n\n", tinyfd_needs.ptr);
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             printf("\n%s\n\n", aTitle);
         }
@@ -2544,7 +2540,7 @@ int _messageBox(
         {
             do
             {
-                if (SOME(aMessage))
+                if (some(aMessage))
                 {
                     printf("%s\n", aMessage);
                 }
@@ -2558,7 +2554,7 @@ int _messageBox(
         {
             do
             {
-                if (SOME(aMessage))
+                if (some(aMessage))
                 {
                     printf("%s\n", aMessage);
                 }
@@ -2572,7 +2568,7 @@ int _messageBox(
         {
             do
             {
-                if (SOME(aMessage))
+                if (some(aMessage))
                 {
                     printf("%s\n", aMessage);
                 }
@@ -2584,7 +2580,7 @@ int _messageBox(
         }
         else
         {
-            if (SOME(aMessage))
+            if (some(aMessage))
             {
                 printf("%s\n\n", aMessage);
             }
@@ -2667,11 +2663,11 @@ const(char*) _inputBox(
             printf("\n\n%s\n", gTitle.ptr);
             printf("%s\n\n", tinyfd_needs.ptr);
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             printf("\n%s\n\n", aTitle);
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             printf("%s\n", aMessage);
         }
@@ -2747,12 +2743,12 @@ const(char*) _saveFileDialog(
         p = _inputBox(aTitle, "Save file", "");
     }
 
-    if (!p || !strlen(p))
+    if (!some(p))
     {
         return null;
     }
     getPathWithoutFinalSlash(lString.ptr, p);
-    if (strlen(lString.ptr) && !dirExists(lString.ptr))
+    if (!dirExists(lString.ptr))
     {
         return null;
     }
@@ -2807,7 +2803,7 @@ const(char*) _openFileDialog(
         p = _inputBox(aTitle, "Open file", "");
     }
 
-    if (!p || !strlen(p))
+    if (!some(p))
     {
         return null;
     }
@@ -2858,7 +2854,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
         p = _inputBox(aTitle, "Select folder", "");
     }
 
-    if (!p || !strlen(p) || !dirExists(p))
+    if (!dirExists(p))
     {
         return null;
     }
@@ -2934,7 +2930,7 @@ int isDarwin()
 
 bool dirExists(const char* aDirPath)
 {
-    if (!aDirPath || !strlen(aDirPath))
+    if (!some(aDirPath))
         return false;
     DIR* lDir = opendir(aDirPath);
     if (!lDir)
@@ -3061,7 +3057,7 @@ bool isDialogVersionBetter09b()
 
     lDialogName = dialogNameOnly();
     lVersion = cast(char*)getVersion(lDialogName);
-    if (!strlen(lDialogName) || !lVersion)
+    if (!some(lDialogName) || !lVersion)
         return false;
     /*lVersion = lTest ;*/
     /*printf("lVersion %s\n", lVersion);*/
@@ -3106,7 +3102,7 @@ const(char)* terminalName()
         {
             strcpy(lShellName, "bash -c "); /*good for basic input*/
         }
-        else if (strlen(dialogNameOnly()) || whiptailPresentOnly())
+        else if (some(dialogNameOnly()) || whiptailPresentOnly())
         {
             strcpy(lShellName, "sh -c "); /*good enough for dialog & whiptail*/
         }
@@ -3215,7 +3211,7 @@ const(char)* terminalName()
                 aterm Terminal terminology sakura lilyterm weston-terminal
                 roxterm termit xvt rxvt mrxvt urxvt */
     }
-    if (strlen(ret))
+    if (some(ret))
     {
         return ret;
     }
@@ -3229,7 +3225,7 @@ const(char)* dialogName()
 {
     const(char)* ret;
     ret = dialogNameOnly();
-    if (strlen(ret) && (isTerminalRunning() || terminalName()))
+    if (some(ret) && (isTerminalRunning() || terminalName()))
     {
         return ret;
     }
@@ -3823,12 +3819,12 @@ int _messageBox(
         if (!osx9orBetter())
             strcat(str, " -e 'tell application \"System Events\"' -e 'Activate'");
         strcat(str, " -e 'try' -e 'set {vButton} to {button returned} of ( display dialog \"");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
         strcat(str, "\" ");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "with title \"");
             strcat(str, aTitle);
@@ -3959,7 +3955,7 @@ int _messageBox(
             strcat(str,
                    " --yes-label Ok --no-label Cancel");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title \"");
             strcat(str, aTitle);
@@ -4048,13 +4044,13 @@ int _messageBox(
         {
             strcat(str, "info");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title=\"");
             strcat(str, aTitle);
             strcat(str, "\"");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, " --no-wrap --text=\"");
             strcat(str, aMessage);
@@ -4169,13 +4165,13 @@ int _messageBox(
         }
 
         strcat(str, "',");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, "message='");
             lpDialogString = str + strlen(str);
@@ -4275,13 +4271,13 @@ else:
         }
 
         strcat(str, "',");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, "message='");
             lpDialogString = str + strlen(str);
@@ -4395,12 +4391,12 @@ else:
         }
 
         strcat(str, " -center \"");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
         strcat(str, "\"");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " -title  \"");
             strcat(str, aTitle);
@@ -4471,7 +4467,7 @@ else:
             strcat(str, "'(whiptail ");
         }
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "--title \"");
             strcat(str, aTitle);
@@ -4518,7 +4514,7 @@ else:
             strcat(str, "--msgbox ");
         }
         strcat(str, "\"");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
@@ -4589,13 +4585,13 @@ else:
             strcat(str, tinyfd_needs.ptr);
             strcat(str, "\";echo;echo;");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "echo \"");
             strcat(str, aTitle);
             strcat(str, "\";echo;");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, "echo \"");
             strcat(str, aMessage);
@@ -4654,17 +4650,17 @@ else:
         strcat(str, "notif=bus.get_object('org.freedesktop.Notifications','/org/freedesktop/Notifications');");
         strcat(str, "notify=dbus.Interface(notif,'org.freedesktop.Notifications');");
         strcat(str, "notify.Notify('',0,'");
-        if (SOME(aIconType))
+        if (some(aIconType))
         {
             strcat(str, aIconType);
         }
         strcat(str, "','");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, aTitle);
         }
         strcat(str, "','");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             lpDialogString = str + strlen(str);
             replaceSubStr(aMessage, "\n", "\\n", lpDialogString);
@@ -4695,19 +4691,19 @@ else:
             return 1;
         }
         strcpy(str, "notify-send");
-        if (SOME(aIconType))
+        if (some(aIconType))
         {
             strcat(str, " -i '");
             strcat(str, aIconType);
             strcat(str, "'");
         }
         strcat(str, " \"");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, aTitle);
             strcat(str, " | ");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             replaceSubStr(aMessage, "\n\t", " |  ", lBuff.ptr);
             replaceSubStr(aMessage, "\n", " | ", lBuff.ptr);
@@ -4729,7 +4725,7 @@ else:
             printf("\n\n%s\n", gTitle.ptr);
             printf("%s\n\n", tinyfd_needs.ptr);
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             printf("\n%s\n", aTitle);
         }
@@ -4744,7 +4740,7 @@ else:
         {
             do
             {
-                if (SOME(aMessage))
+                if (some(aMessage))
                 {
                     printf("\n%s\n", aMessage);
                 }
@@ -4759,7 +4755,7 @@ else:
         {
             do
             {
-                if (SOME(aMessage))
+                if (some(aMessage))
                 {
                     printf("\n%s\n", aMessage);
                 }
@@ -4774,7 +4770,7 @@ else:
         {
             do
             {
-                if (SOME(aMessage))
+                if (some(aMessage))
                 {
                     printf("\n%s\n", aMessage);
                 }
@@ -4787,7 +4783,7 @@ else:
         }
         else
         {
-            if (SOME(aMessage))
+            if (some(aMessage))
             {
                 printf("\n%s\n\n", aMessage);
             }
@@ -4878,12 +4874,12 @@ int _notifyPopup(
         if (!osx9orBetter())
             strcat(str, " -e 'tell application \"System Events\"' -e 'Activate'");
         strcat(str, " -e 'try' -e 'display notification \"");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
         strcat(str, " \" ");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "with title \"");
             strcat(str, aTitle);
@@ -4903,13 +4899,13 @@ int _notifyPopup(
         }
         strcpy(str, "kdialog");
 
-        if (SOME(aIconType))
+        if (some(aIconType))
         {
             strcat(str, " --icon '");
             strcat(str, aIconType);
             strcat(str, "'");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title \"");
             strcat(str, aTitle);
@@ -4967,7 +4963,7 @@ int _notifyPopup(
 
         strcat(str, " --notification");
 
-        if (SOME(aIconType))
+        if (some(aIconType))
         {
             strcat(str, " --window-icon '");
             strcat(str, aIconType);
@@ -4975,12 +4971,12 @@ int _notifyPopup(
         }
 
         strcat(str, " --text \"");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, aTitle);
             strcat(str, "\n");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
@@ -5013,17 +5009,17 @@ int _notifyPopup(
         strcat(str, "notif=bus.get_object('org.freedesktop.Notifications','/org/freedesktop/Notifications');");
         strcat(str, "notify=dbus.Interface(notif,'org.freedesktop.Notifications');");
         strcat(str, "notify.Notify('',0,'");
-        if (SOME(aIconType))
+        if (some(aIconType))
         {
             strcat(str, aIconType);
         }
         strcat(str, "','");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, aTitle);
         }
         strcat(str, "','");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             lpDialogString = str + strlen(str);
             replaceSubStr(aMessage, "\n", "\\n", lpDialogString);
@@ -5038,19 +5034,19 @@ int _notifyPopup(
             return 1;
         }
         strcpy(str, "notify-send");
-        if (SOME(aIconType))
+        if (some(aIconType))
         {
             strcat(str, " -i '");
             strcat(str, aIconType);
             strcat(str, "'");
         }
         strcat(str, " \"");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, aTitle);
             strcat(str, " | ");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             replaceSubStr(aMessage, "\n\t", " |  ", lBuff.ptr);
             replaceSubStr(aMessage, "\n", " | ", lBuff.ptr);
@@ -5120,13 +5116,13 @@ const(char*) _inputBox(
         if (!osx9orBetter())
             strcat(str, " -e 'tell application \"System Events\"' -e 'Activate'");
         strcat(str, " -e 'try' -e 'display dialog \"");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
         strcat(str, "\" ");
         strcat(str, "default answer \"");
-        if (SOME(aDefaultInput))
+        if (some(aDefaultInput))
         {
             strcat(str, aDefaultInput);
         }
@@ -5135,7 +5131,7 @@ const(char*) _inputBox(
         {
             strcat(str, "hidden answer true ");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "with title \"");
             strcat(str, aTitle);
@@ -5172,17 +5168,17 @@ const(char*) _inputBox(
             strcat(str, " --inputbox ");
         }
         strcat(str, "\"");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
         strcat(str, "\" \"");
-        if (SOME(aDefaultInput))
+        if (some(aDefaultInput))
         {
             strcat(str, aDefaultInput);
         }
         strcat(str, "\"");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title \"");
             strcat(str, aTitle);
@@ -5239,19 +5235,19 @@ const(char*) _inputBox(
         }
         strcat(str, " --entry");
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title=\"");
             strcat(str, aTitle);
             strcat(str, "\"");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, " --text=\"");
             strcat(str, aMessage);
             strcat(str, "\"");
         }
-        if (SOME(aDefaultInput))
+        if (some(aDefaultInput))
         {
             strcat(str, " --entry-text=\"");
             strcat(str, aDefaultInput);
@@ -5286,19 +5282,19 @@ const(char*) _inputBox(
             strcpy(str, "szAnswer=$(gmessage -buttons Ok:1,Cancel:0 -center \"");
         }
 
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
         strcat(str, "\"");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " -title  \"");
             strcat(str, aTitle);
             strcat(str, "\" ");
         }
         strcat(str, " -entrytext \"");
-        if (SOME(aDefaultInput))
+        if (some(aDefaultInput))
         {
             strcat(str, aDefaultInput);
         }
@@ -5329,13 +5325,13 @@ const(char*) _inputBox(
         }
 
         strcat(str, "res=tkSimpleDialog.askstring(");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, "prompt='");
             lpDialogString = str + strlen(str);
@@ -5344,7 +5340,7 @@ const(char*) _inputBox(
         }
         if (aDefaultInput)
         {
-            if (strlen(aDefaultInput))
+            if (some(aDefaultInput))
             {
                 strcat(str, "initialvalue='");
                 strcat(str, aDefaultInput);
@@ -5369,13 +5365,13 @@ const(char*) _inputBox(
         strcat(str,
                " -S -c \"import tkinter; from tkinter import simpledialog;root=tkinter.Tk();root.withdraw();");
         strcat(str, "res=simpledialog.askstring(");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, "prompt='");
             lpDialogString = str + strlen(str);
@@ -5384,7 +5380,7 @@ const(char*) _inputBox(
         }
         if (aDefaultInput)
         {
-            if (strlen(aDefaultInput))
+            if (some(aDefaultInput))
             {
                 strcat(str, "initialvalue='");
                 strcat(str, aDefaultInput);
@@ -5462,7 +5458,7 @@ const(char*) _inputBox(
             strcat(str, "'(whiptail ");
         }
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "--title \"");
             strcat(str, aTitle);
@@ -5493,12 +5489,12 @@ const(char*) _inputBox(
             strcat(str, "--passwordbox");
         }
         strcat(str, " \"");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
         strcat(str, "\" 10 60 ");
-        if (SOME(aDefaultInput))
+        if (some(aDefaultInput))
         {
             strcat(str, "\"");
             strcat(str, aDefaultInput);
@@ -5541,7 +5537,7 @@ const(char*) _inputBox(
             gWarningDisplayed = true;
             _messageBox(gTitle.ptr, tinyfd_needs.ptr, "ok", "warning", 0);
         }
-        if (SOME(aTitle) && !tinyfd_forceConsole)
+        if (some(aTitle) && !tinyfd_forceConsole)
         {
             strcat(str, "echo \"");
             strcat(str, aTitle);
@@ -5549,7 +5545,7 @@ const(char*) _inputBox(
         }
 
         strcat(str, "echo \"");
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             strcat(str, aMessage);
         }
@@ -5586,11 +5582,11 @@ const(char*) _inputBox(
             gWarningDisplayed = true;
             _messageBox(gTitle.ptr, tinyfd_needs.ptr, "ok", "warning", 0);
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             printf("\n%s\n", aTitle);
         }
-        if (SOME(aMessage))
+        if (some(aMessage))
         {
             printf("\n%s\n", aMessage);
         }
@@ -5731,21 +5727,21 @@ const(char*) _saveFileDialog(
         if (!osx9orBetter())
             strcat(str, " -e 'tell application \"Finder\"' -e 'Activate'");
         strcat(str, " -e 'try' -e 'POSIX path of ( choose file name ");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "with prompt \"");
             strcat(str, aTitle);
             strcat(str, "\" ");
         }
         getPathWithoutFinalSlash(lString, aDefaultPathAndFile);
-        if (strlen(lString))
+        if (some(lString))
         {
             strcat(str, "default location \"");
             strcat(str, lString);
             strcat(str, "\" ");
         }
         getLastName(lString, aDefaultPathAndFile);
-        if (strlen(lString))
+        if (some(lString))
         {
             strcat(str, "default name \"");
             strcat(str, lString);
@@ -5772,7 +5768,7 @@ const(char*) _saveFileDialog(
         }
         strcat(str, " --getsavefilename ");
 
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             if (aDefaultPathAndFile[0] != '/')
             {
@@ -5799,7 +5795,7 @@ const(char*) _saveFileDialog(
             strcat(str, " \"");
             if (pattern)
             {
-                if (SOME(aSingleFilterDescription))
+                if (some(aSingleFilterDescription))
                 {
                     strcat(str, aSingleFilterDescription);
                 }
@@ -5817,7 +5813,7 @@ const(char*) _saveFileDialog(
             }
             strcat(str, "\"");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title \"");
             strcat(str, aTitle);
@@ -5872,13 +5868,13 @@ const(char*) _saveFileDialog(
         }
         strcat(str, " --file-selection --save --confirm-overwrite");
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title=\"");
             strcat(str, aTitle);
             strcat(str, "\"");
         }
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             strcat(str, " --filename=\"");
             strcat(str, aDefaultPathAndFile);
@@ -5887,7 +5883,7 @@ const(char*) _saveFileDialog(
         if (aNumOfFilterPatterns > 0)
         {
             strcat(str, " --file-filter='");
-            if (SOME(aSingleFilterDescription))
+            if (some(aSingleFilterDescription))
             {
                 strcat(str, aSingleFilterDescription);
                 strcat(str, " | ");
@@ -5925,23 +5921,23 @@ const(char*) _saveFileDialog(
         }
 
         strcat(str, "print tkFileDialog.asksaveasfilename(");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             getPathWithoutFinalSlash(lString, aDefaultPathAndFile);
-            if (strlen(lString))
+            if (some(lString))
             {
                 strcat(str, "initialdir='");
                 strcat(str, lString);
                 strcat(str, "',");
             }
             getLastName(lString, aDefaultPathAndFile);
-            if (strlen(lString))
+            if (some(lString))
             {
                 strcat(str, "initialfile='");
                 strcat(str, lString);
@@ -5953,7 +5949,7 @@ const(char*) _saveFileDialog(
         {
             strcat(str, "filetypes=(");
             strcat(str, "('");
-            if (SOME(aSingleFilterDescription))
+            if (some(aSingleFilterDescription))
             {
                 strcat(str, aSingleFilterDescription);
             }
@@ -5980,23 +5976,23 @@ const(char*) _saveFileDialog(
         strcat(str,
                " -S -c \"import tkinter;from tkinter import filedialog;root=tkinter.Tk();root.withdraw();");
         strcat(str, "print( filedialog.asksaveasfilename(");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             getPathWithoutFinalSlash(lString, aDefaultPathAndFile);
-            if (strlen(lString))
+            if (some(lString))
             {
                 strcat(str, "initialdir='");
                 strcat(str, lString);
                 strcat(str, "',");
             }
             getLastName(lString, aDefaultPathAndFile);
-            if (strlen(lString))
+            if (some(lString))
             {
                 strcat(str, "initialfile='");
                 strcat(str, lString);
@@ -6008,7 +6004,7 @@ const(char*) _saveFileDialog(
         {
             strcat(str, "filetypes=(");
             strcat(str, "('");
-            if (SOME(aSingleFilterDescription))
+            if (some(aSingleFilterDescription))
             {
                 strcat(str, aSingleFilterDescription);
             }
@@ -6059,7 +6055,7 @@ const(char*) _saveFileDialog(
             strcat(str, " ");
         }
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "--title \"");
             strcat(str, aTitle);
@@ -6075,7 +6071,7 @@ const(char*) _saveFileDialog(
         }
 
         strcat(str, "--fselect \"");
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             if (!strchr(aDefaultPathAndFile, '/'))
             {
@@ -6119,12 +6115,12 @@ const(char*) _saveFileDialog(
         }
         p = _inputBox(aTitle, "Save file", "");
         getPathWithoutFinalSlash(lString, p);
-        if (strlen(lString) && !dirExists(lString))
+        if (!dirExists(lString))
         {
             return null;
         }
         getLastName(lString, p);
-        if (!strlen(lString))
+        if (!some(lString))
         {
             return null;
         }
@@ -6144,12 +6140,12 @@ const(char*) _saveFileDialog(
     pclose(lIn);
     removeLastNL(lBuff.ptr);
     /* printf( "lBuff: %s\n" , lBuff ) ; */
-    if (!strlen(lBuff.ptr))
+    if (!some(lBuff.ptr))
     {
         return null;
     }
     getPathWithoutFinalSlash(lString, lBuff.ptr);
-    if (strlen(lString) && !dirExists(lString))
+    if (!dirExists(lString))
     {
         return null;
     }
@@ -6205,14 +6201,14 @@ const(char*) _openFileDialog(
             strcat(str, "set mylist to ");
         }
         strcat(str, "choose file ");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "with prompt \"");
             strcat(str, aTitle);
             strcat(str, "\" ");
         }
         getPathWithoutFinalSlash(lString, aDefaultPathAndFile);
-        if (strlen(lString))
+        if (some(lString))
         {
             strcat(str, "default location \"");
             strcat(str, lString);
@@ -6269,7 +6265,7 @@ const(char*) _openFileDialog(
         }
         strcat(str, " --getopenfilename ");
 
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             if (aDefaultPathAndFile[0] != '/')
             {
@@ -6296,7 +6292,7 @@ const(char*) _openFileDialog(
             strcat(str, " \"");
             if (pattern)
             {
-                if (SOME(aSingleFilterDescription))
+                if (some(aSingleFilterDescription))
                 {
                     strcat(str, aSingleFilterDescription);
                 }
@@ -6318,7 +6314,7 @@ const(char*) _openFileDialog(
         {
             strcat(str, " --multiple --separate-output");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title \"");
             strcat(str, aTitle);
@@ -6377,13 +6373,13 @@ const(char*) _openFileDialog(
         {
             strcat(str, " --multiple");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title=\"");
             strcat(str, aTitle);
             strcat(str, "\"");
         }
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             strcat(str, " --filename=\"");
             strcat(str, aDefaultPathAndFile);
@@ -6392,7 +6388,7 @@ const(char*) _openFileDialog(
         if (aNumOfFilterPatterns > 0)
         {
             strcat(str, " --file-filter='");
-            if (SOME(aSingleFilterDescription))
+            if (some(aSingleFilterDescription))
             {
                 strcat(str, aSingleFilterDescription);
                 strcat(str, " | ");
@@ -6433,23 +6429,23 @@ const(char*) _openFileDialog(
         {
             strcat(str, "multiple=1,");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             getPathWithoutFinalSlash(lString, aDefaultPathAndFile);
-            if (strlen(lString))
+            if (some(lString))
             {
                 strcat(str, "initialdir='");
                 strcat(str, lString);
                 strcat(str, "',");
             }
             getLastName(lString, aDefaultPathAndFile);
-            if (strlen(lString))
+            if (some(lString))
             {
                 strcat(str, "initialfile='");
                 strcat(str, lString);
@@ -6461,7 +6457,7 @@ const(char*) _openFileDialog(
         {
             strcat(str, "filetypes=(");
             strcat(str, "('");
-            if (SOME(aSingleFilterDescription))
+            if (some(aSingleFilterDescription))
             {
                 strcat(str, aSingleFilterDescription);
             }
@@ -6500,23 +6496,23 @@ else:
         {
             strcat(str, "multiple=1,");
         }
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             getPathWithoutFinalSlash(lString, aDefaultPathAndFile);
-            if (strlen(lString))
+            if (some(lString))
             {
                 strcat(str, "initialdir='");
                 strcat(str, lString);
                 strcat(str, "',");
             }
             getLastName(lString, aDefaultPathAndFile);
-            if (strlen(lString))
+            if (some(lString))
             {
                 strcat(str, "initialfile='");
                 strcat(str, lString);
@@ -6528,7 +6524,7 @@ else:
         {
             strcat(str, "filetypes=(");
             strcat(str, "('");
-            if (SOME(aSingleFilterDescription))
+            if (some(aSingleFilterDescription))
             {
                 strcat(str, aSingleFilterDescription);
             }
@@ -6587,7 +6583,7 @@ else:
             strcat(str, " ");
         }
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "--title \"");
             strcat(str, aTitle);
@@ -6603,7 +6599,7 @@ else:
         }
 
         strcat(str, "--fselect \"");
-        if (SOME(aDefaultPathAndFile))
+        if (some(aDefaultPathAndFile))
         {
             if (!strchr(aDefaultPathAndFile, '/'))
             {
@@ -6679,7 +6675,7 @@ else:
         }
     }
     /* printf( "lBuff2: %s\n" , lBuff ) ; */
-    if (!strlen(lBuff.ptr))
+    if (!some(lBuff.ptr))
     {
         return null;
     }
@@ -6723,13 +6719,13 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
         if (!osx9orBetter())
             strcat(str, " -e 'tell application \"System Events\"' -e 'Activate'");
         strcat(str, " -e 'try' -e 'POSIX path of ( choose folder ");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "with prompt \"");
             strcat(str, aTitle);
             strcat(str, "\" ");
         }
-        if (SOME(aDefaultPath))
+        if (some(aDefaultPath))
         {
             strcat(str, "default location \"");
             strcat(str, aDefaultPath);
@@ -6755,7 +6751,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
         }
         strcat(str, " --getexistingdirectory ");
 
-        if (SOME(aDefaultPath))
+        if (some(aDefaultPath))
         {
             if (aDefaultPath[0] != '/')
             {
@@ -6770,7 +6766,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
             strcat(str, "$PWD/");
         }
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title \"");
             strcat(str, aTitle);
@@ -6825,13 +6821,13 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
         }
         strcat(str, " --file-selection --directory");
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title=\"");
             strcat(str, aTitle);
             strcat(str, "\"");
         }
-        if (SOME(aDefaultPath))
+        if (some(aDefaultPath))
         {
             strcat(str, " --filename=\"");
             strcat(str, aDefaultPath);
@@ -6863,13 +6859,13 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
         }
 
         strcat(str, "print tkFileDialog.askdirectory(");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aDefaultPath))
+        if (some(aDefaultPath))
         {
             strcat(str, "initialdir='");
             strcat(str, aDefaultPath);
@@ -6888,13 +6884,13 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
         strcat(str,
                " -S -c \"import tkinter;from tkinter import filedialog;root=tkinter.Tk();root.withdraw();");
         strcat(str, "print( filedialog.askdirectory(");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "title='");
             strcat(str, aTitle);
             strcat(str, "',");
         }
-        if (SOME(aDefaultPath))
+        if (some(aDefaultPath))
         {
             strcat(str, "initialdir='");
             strcat(str, aDefaultPath);
@@ -6937,7 +6933,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
             strcat(str, " ");
         }
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, "--title \"");
             strcat(str, aTitle);
@@ -6953,7 +6949,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
         }
 
         strcat(str, "--dselect \"");
-        if (SOME(aDefaultPath))
+        if (some(aDefaultPath))
         {
             strcat(str, aDefaultPath);
             ensureFinalSlash(str);
@@ -6993,7 +6989,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
             return _inputBox(aTitle, null, null);
         }
         p = _inputBox(aTitle, "Select folder", "");
-        if (!p || !strlen(p) || !dirExists(p))
+        if (!dirExists(p))
         {
             return null;
         }
@@ -7012,7 +7008,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
     pclose(lIn);
     removeLastNL(lBuff.ptr);
     /* printf( "lBuff: %s\n" , lBuff ) ; */
-    if (!strlen(lBuff.ptr) || !dirExists(lBuff.ptr))
+    if (!dirExists(lBuff.ptr))
     {
         return null;
     }
@@ -7114,7 +7110,7 @@ const(char*) _colorChooser(
         }
         sprintf(str + strlen(str), " --getcolor --default '%s'", lpDefaultHexRGB);
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title \"");
             strcat(str, aTitle);
@@ -7171,7 +7167,7 @@ const(char*) _colorChooser(
         strcat(str, " --color-selection --show-palette");
         sprintf(str + strlen(str), " --color=%s", lpDefaultHexRGB);
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, " --title=\"");
             strcat(str, aTitle);
@@ -7189,7 +7185,7 @@ const(char*) _colorChooser(
         }
         lWasXdialog = true;
         strcpy(str, "Xdialog --colorsel \"");
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, aTitle);
         }
@@ -7225,7 +7221,7 @@ const(char*) _colorChooser(
         strcat(str, lpDefaultHexRGB);
         strcat(str, "'");
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, ",title='");
             strcat(str, aTitle);
@@ -7250,7 +7246,7 @@ if res[1] is not None:
         strcat(str, lpDefaultHexRGB);
         strcat(str, "'");
 
-        if (SOME(aTitle))
+        if (some(aTitle))
         {
             strcat(str, ",title='");
             strcat(str, aTitle);
@@ -7294,7 +7290,7 @@ if res[1] is not None:
     {
     }
     pclose(lIn);
-    if (!strlen(lBuff.ptr))
+    if (!some(lBuff.ptr))
     {
         return null;
     }
