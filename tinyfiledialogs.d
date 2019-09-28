@@ -397,7 +397,6 @@ version (Windows)
     import core.stdc.stdio;
     import core.stdc.wchar_;
     import core.sys.windows.commdlg;
-    import core.sys.windows.stat;
     import core.sys.windows.w32api;
 
     static assert(_WIN32_WINNT >= 0x0500);
@@ -426,8 +425,8 @@ version (Windows)
 
         int _getch();
         FILE* _wfopen(const wchar* filename, const wchar* mode);
-        int _wremove(const wchar* path );
-        wchar* _wgetenv(const wchar* varname );
+        int _wremove(const wchar* path);
+        wchar* _wgetenv(const wchar* varname);
         FILE* _popen(const char* command, const char* mode);
         int _pclose(FILE* stream);
         // header versions are not nothrow @nogc
@@ -647,21 +646,16 @@ bool filenameValid(const char* aFileNameWithoutPath)
 
 void wipefile(const char* aFilename)
 {
-    version (Windows)
-        struct_stat st;
-    else
-        stat_t st;
-    FILE* lIn;
-
-    if (stat(aFilename, &st) == 0)
+    // file must exist beforehand
+    FILE* lIn = fopen(aFilename, "w");
+    if (lIn)
     {
-        lIn = fopen(aFilename, "w");
-        if (lIn)
+        fseek(lIn, 0, SEEK_END);
+        const size = ftell(lIn);
+        rewind(lIn);
+        foreach (i; 0 .. size)
         {
-            foreach (i; 0 .. st.st_size)
-            {
-                fputc('A', lIn);
-            }
+            fputc('A', lIn);
         }
         fclose(lIn);
     }
@@ -731,11 +725,10 @@ version (Windows)
             if (!some(aFilePathAndName))
                 return false;
 
-            struct_stat lInfo;
             wchar* lTmpWChar = utf8to16(aFilePathAndName);
-            int lStatRet = _wstat(lTmpWChar, &lInfo);
+            DWORD attribs = GetFileAttributes(lTmpWChar);
             free(lTmpWChar);
-            return lStatRet == 0 && (lInfo.st_mode & S_IFREG) != 0;
+            return !(attribs & FILE_ATTRIBUTE_DEVICE) && !(attribs & FILE_ATTRIBUTE_DIRECTORY);
         }
     }
 }
@@ -806,18 +799,16 @@ void _beep()
 
 void wipefileW(const wchar* aFilename)
 {
-    struct_stat st;
-    FILE* lIn;
-
-    if (_wstat(aFilename, &st) == 0)
+    // file must exist beforehand
+    FILE* lIn = _wfopen(aFilename, "w");
+    if (lIn)
     {
-        lIn = _wfopen(aFilename, "w");
-        if (lIn)
+        fseek(lIn, 0, SEEK_END);
+        const size = ftell(lIn);
+        rewind(lIn);
+        foreach (i; 0 .. size)
         {
-            foreach (i; 0 .. st.st_size)
-            {
-                fputc('A', lIn);
-            }
+            fputc('A', lIn);
         }
         fclose(lIn);
     }
@@ -966,11 +957,10 @@ bool dirExists(const char* aDirPath)
     if (lDirLen == 2 && aDirPath[1] == ':')
         return true;
 
-    struct_stat lInfo;
     wchar* lTmpWChar = utf8to16(aDirPath);
-    int lStatRet = _wstat(lTmpWChar, &lInfo);
+    DWORD attribs = GetFileAttributes(lTmpWChar);
     free(lTmpWChar);
-    return lStatRet == 0 && (lInfo.st_mode & S_IFDIR) != 0;
+    return (attribs & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
 
 bool replaceWchar(wchar* aString, const wchar aOldChr, const wchar aNewChr)
