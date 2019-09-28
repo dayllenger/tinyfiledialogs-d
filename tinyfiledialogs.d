@@ -421,7 +421,6 @@ version (Windows)
 
         pragma(lib, "comdlg32.lib");
         pragma(lib, "ole32.lib");
-        pragma(lib, "ntdll.lib");
         pragma(lib, "user32.lib");
 
         int _getch();
@@ -900,7 +899,7 @@ void RGB2HexW(const ubyte[3] aRGB, wchar* aoResultHexRGB)
     {
         /* wprintf("aoResultHexRGB %s\n", aoResultHexRGB); */
         // NOTE: here was compiler ifdef
-        swprintf(aoResultHexRGB, 8, "#%02hhx%02hhx%02hhx", aRGB[0], aRGB[1], aRGB[2]);
+        // swprintf(aoResultHexRGB, 8, "#%02hhx%02hhx%02hhx", aRGB[0], aRGB[1], aRGB[2]);
     }
 }
 
@@ -1241,16 +1240,10 @@ const(wchar)* _inputBoxW(
     lDialogStringLen = 3 * MAX_PATH_OR_CMD + lTitleLen + lMessageLen;
     str = cast(wchar*)malloc(2 * lDialogStringLen);
 
-    if (aDefaultInput)
-    {
-        // NOTE: here was compiler ifdef
-        swprintf(str, lDialogStringLen, "%ls\\AppData\\Local\\Temp\\tinyfd.vbs", _wgetenv("USERPROFILE"));
-    }
-    else
-    {
-        // NOTE: here was compiler ifdef
-        swprintf(str, lDialogStringLen, "%ls\\AppData\\Local\\Temp\\tinyfd.hta", _wgetenv("USERPROFILE"));
-    }
+    wcscpy(str, _wgetenv("USERPROFILE"));
+    wcscat(str, "\\AppData\\Local\\Temp\\tinyfd.");
+    wcscat(str, aDefaultInput ? "vbs" : "hta");
+
     lIn = _wfopen(str, "w");
     if (!lIn)
     {
@@ -1382,9 +1375,8 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>
 
     if (aDefaultInput)
     {
-        // NOTE: here was compiler ifdef
-        swprintf(str, lDialogStringLen,
-                 "%ls\\AppData\\Local\\Temp\\tinyfd.txt", _wgetenv("USERPROFILE"));
+        wcscpy(str, _wgetenv("USERPROFILE"));
+        wcscat(str, "\\AppData\\Local\\Temp\\tinyfd.txt");
 
 version (TINYFD_NOCCSUNICODE) {
         lFile = _wfopen(str, "w");
@@ -1408,9 +1400,8 @@ version (TINYFD_NOCCSUNICODE) {
 
     hiddenConsoleW(str, aTitle, 1);
 
-    // NOTE: here was compiler ifdef
-    swprintf(str, lDialogStringLen,
-             "%ls\\AppData\\Local\\Temp\\tinyfd.txt", _wgetenv("USERPROFILE"));
+    wcscpy(str, _wgetenv("USERPROFILE"));
+    wcscat(str, "\\AppData\\Local\\Temp\\tinyfd.txt");
     /* wprintf("str: %ls\n", str); */
     version (TINYFD_NOCCSUNICODE)
         const wchar* mode = "r";
@@ -1435,16 +1426,9 @@ version (TINYFD_NOCCSUNICODE) {
     wipefileW(str);
     _wremove(str);
 
-    if (aDefaultInput)
-    {
-        // NOTE: here was compiler ifdef
-        swprintf(str, lDialogStringLen, "%ls\\AppData\\Local\\Temp\\tinyfd.vbs", _wgetenv("USERPROFILE"));
-    }
-    else
-    {
-        // NOTE: here was compiler ifdef
-        swprintf(str, lDialogStringLen, "%ls\\AppData\\Local\\Temp\\tinyfd.hta", _wgetenv("USERPROFILE"));
-    }
+    wcscpy(str, _wgetenv("USERPROFILE"));
+    wcscat(str, "\\AppData\\Local\\Temp\\tinyfd.");
+    wcscat(str, aDefaultInput ? "vbs" : "hta");
     _wremove(str);
     free(str);
     /* wprintf( "lBuff: %ls\n" , lBuff ) ; */
