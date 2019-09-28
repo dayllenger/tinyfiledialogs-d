@@ -647,7 +647,6 @@ bool filenameValid(const char* aFileNameWithoutPath)
 
 void wipefile(const char* aFilename)
 {
-    int i;
     version (Windows)
         struct_stat st;
     else
@@ -659,7 +658,7 @@ void wipefile(const char* aFilename)
         lIn = fopen(aFilename, "w");
         if (lIn)
         {
-            for (i = 0; i < st.st_size; i++)
+            foreach (i; 0 .. st.st_size)
             {
                 fputc('A', lIn);
             }
@@ -807,7 +806,6 @@ void _beep()
 
 void wipefileW(const wchar* aFilename)
 {
-    int i;
     struct_stat st;
     FILE* lIn;
 
@@ -816,7 +814,7 @@ void wipefileW(const wchar* aFilename)
         lIn = _wfopen(aFilename, "w");
         if (lIn)
         {
-            for (i = 0; i < st.st_size; i++)
+            foreach (i; 0 .. st.st_size)
             {
                 fputc('A', lIn);
             }
@@ -1544,7 +1542,6 @@ const(wchar)* _saveFileDialogW(
     wchar* lFilterPatterns = lFilterPatterns_buf.ptr;
     wchar* p;
     wchar* lRetval;
-    int i;
     HRESULT lHResult;
     OPENFILENAMEW ofn = {0};
 
@@ -1567,7 +1564,7 @@ const(wchar)* _saveFileDialogW(
             wcscat(lFilterPatterns, "\n");
         }
         wcscat(lFilterPatterns, aFilterPatterns[0]);
-        for (i = 1; i < aNumOfFilterPatterns; i++)
+        foreach (i; 1 .. aNumOfFilterPatterns)
         {
             wcscat(lFilterPatterns, ";");
             wcscat(lFilterPatterns, aFilterPatterns[i]);
@@ -1639,10 +1636,9 @@ const(char)* saveFileDialogWinGui8(
     wchar** lFilterPatterns;
     const(wchar)* lTmpWChar;
     char* lTmpChar;
-    int i;
 
     lFilterPatterns = cast(wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
-    for (i = 0; i < aNumOfFilterPatterns; i++)
+    foreach (i; 0 .. aNumOfFilterPatterns)
     {
         lFilterPatterns[i] = utf8to16(aFilterPatterns[i]);
     }
@@ -1661,7 +1657,7 @@ const(char)* saveFileDialogWinGui8(
     free(lTitle);
     free(lDefaultPathAndFile);
     free(lSingleFilterDescription);
-    for (i = 0; i < aNumOfFilterPatterns; i++)
+    foreach (i; 0 .. aNumOfFilterPatterns)
     {
         free(lFilterPatterns[i]);
     }
@@ -1696,7 +1692,6 @@ const(wchar)* _openFileDialogW(
     wchar* lFilterPatterns = lFilterPatterns_buf.ptr;
     wchar*[MAX_MULTIPLE_FILES] lPointers;
     wchar* lRetval, p;
-    int i, j;
     size_t lBuffLen;
     HRESULT lHResult;
     OPENFILENAMEW ofn = {0};
@@ -1720,7 +1715,7 @@ const(wchar)* _openFileDialogW(
             wcscat(lFilterPatterns, "\n");
         }
         wcscat(lFilterPatterns, aFilterPatterns[0]);
-        for (i = 1; i < aNumOfFilterPatterns; i++)
+        foreach (i; 1 .. aNumOfFilterPatterns)
         {
             wcscat(lFilterPatterns, ";");
             wcscat(lFilterPatterns, aFilterPatterns[i]);
@@ -1780,7 +1775,7 @@ const(wchar)* _openFileDialogW(
         }
         else
         {
-            i = 0;
+            int i;
             do
             {
                 lLengths[i] = wcslen(lPointers[i]);
@@ -1790,7 +1785,7 @@ const(wchar)* _openFileDialogW(
             i--;
             p = lBuff.ptr + MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD - 1;
             *p = '\0';
-            for (j = i; j >= 0; j--)
+            for (int j = i; j >= 0; j--)
             {
                 p -= lLengths[j];
                 memmove(p, lPointers[j], lLengths[j] * wchar.sizeof);
@@ -1828,10 +1823,9 @@ const(char)* openFileDialogWinGui8(
     wchar** lFilterPatterns;
     const(wchar)* lTmpWChar;
     char* lTmpChar;
-    int i;
 
     lFilterPatterns = cast(wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
-    for (i = 0; i < aNumOfFilterPatterns; i++)
+    foreach (i; 0 .. aNumOfFilterPatterns)
     {
         lFilterPatterns[i] = utf8to16(aFilterPatterns[i]);
     }
@@ -1851,7 +1845,7 @@ const(char)* openFileDialogWinGui8(
     free(lTitle);
     free(lDefaultPathAndFile);
     free(lSingleFilterDescription);
-    for (i = 0; i < aNumOfFilterPatterns; i++)
+    foreach (i; 0 .. aNumOfFilterPatterns)
     {
         free(lFilterPatterns[i]);
     }
@@ -2870,7 +2864,6 @@ const(char*) _colorChooser(
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char[8] lDefaultHexRGB = '\0';
     char* lpDefaultHexRGB;
-    int i;
     const(char)* p;
 
     if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
@@ -2900,7 +2893,7 @@ const(char*) _colorChooser(
     {
         return null;
     }
-    for (i = 1; i < 7; i++)
+    foreach (i; 1 .. 7)
     {
         if (!isxdigit(p[i]))
         {
@@ -3567,7 +3560,6 @@ int osx9orBetter()
 int python2Present()
 {
     static int ret = -1;
-    int i;
 
     if (ret < 0)
     {
@@ -3577,7 +3569,7 @@ int python2Present()
             ret = 1;
         else
         {
-            for (i = 9; i >= 0; i--)
+            for (int i = 9; i >= 0; i--)
             {
                 sprintf(gPython2Name.ptr, "python2.%d", i);
                 if (detectPresence(gPython2Name.ptr))
@@ -3603,7 +3595,6 @@ int python2Present()
 int python3Present()
 {
     static int ret = -1;
-    int i;
 
     if (ret < 0)
     {
@@ -3613,7 +3604,7 @@ int python3Present()
             ret = 1;
         else
         {
-            for (i = 9; i >= 0; i--)
+            for (int i = 9; i >= 0; i--)
             {
                 sprintf(gPython3Name.ptr, "python3.%d", i);
                 if (detectPresence(gPython3Name.ptr))
@@ -5709,7 +5700,6 @@ const(char*) _saveFileDialog(
     char[MAX_PATH_OR_CMD] str_buf2 = '\0';
     char* str = str_buf1.ptr;
     char* lString = str_buf2.ptr;
-    int i;
     bool lWasGraphicDialog;
     bool lWasXterm;
     const(char)* p;
@@ -5786,7 +5776,7 @@ const(char*) _saveFileDialog(
         if (aNumOfFilterPatterns > 0)
         {
             bool pattern; // otherwise MIME-type filter
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 pattern = strchr(aFilterPatterns[i], '*') !is null;
                 if (pattern)
@@ -5801,7 +5791,7 @@ const(char*) _saveFileDialog(
                 }
                 strcat(str, "(");
             }
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 if (i != 0)
                     strcat(str, " ");
@@ -5888,7 +5878,7 @@ const(char*) _saveFileDialog(
                 strcat(str, aSingleFilterDescription);
                 strcat(str, " | ");
             }
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 strcat(str, aFilterPatterns[i]);
                 strcat(str, " ");
@@ -5954,7 +5944,7 @@ const(char*) _saveFileDialog(
                 strcat(str, aSingleFilterDescription);
             }
             strcat(str, "',(");
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 strcat(str, "'");
                 strcat(str, aFilterPatterns[i]);
@@ -6009,7 +5999,7 @@ const(char*) _saveFileDialog(
                 strcat(str, aSingleFilterDescription);
             }
             strcat(str, "',(");
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 strcat(str, "'");
                 strcat(str, aFilterPatterns[i]);
@@ -6171,7 +6161,6 @@ const(char*) _openFileDialog(
     char[MAX_PATH_OR_CMD] str_buf2 = '\0';
     char* str = str_buf1.ptr;
     char* lString = str_buf2.ptr;
-    int i;
     FILE* lIn;
     char* p;
     const(char)* p2;
@@ -6219,7 +6208,7 @@ const(char*) _openFileDialog(
             strcat(str, "of type {\"");
             strcat(str, aFilterPatterns[0] + 2);
             strcat(str, "\"");
-            for (i = 1; i < aNumOfFilterPatterns; i++)
+            foreach (i; 1 .. aNumOfFilterPatterns)
             {
                 strcat(str, ",\"");
                 strcat(str, aFilterPatterns[i] + 2);
@@ -6283,7 +6272,7 @@ const(char*) _openFileDialog(
         if (aNumOfFilterPatterns > 0)
         {
             bool pattern; // otherwise MIME-type filter
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 pattern = strchr(aFilterPatterns[i], '*') !is null;
                 if (pattern)
@@ -6298,7 +6287,7 @@ const(char*) _openFileDialog(
                 }
                 strcat(str, "(");
             }
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 if (i != 0)
                     strcat(str, " ");
@@ -6393,7 +6382,7 @@ const(char*) _openFileDialog(
                 strcat(str, aSingleFilterDescription);
                 strcat(str, " | ");
             }
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 strcat(str, aFilterPatterns[i]);
                 strcat(str, " ");
@@ -6462,7 +6451,7 @@ const(char*) _openFileDialog(
                 strcat(str, aSingleFilterDescription);
             }
             strcat(str, "',(");
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 strcat(str, "'");
                 strcat(str, aFilterPatterns[i]);
@@ -6529,7 +6518,7 @@ else:
                 strcat(str, aSingleFilterDescription);
             }
             strcat(str, "',(");
-            for (i = 0; i < aNumOfFilterPatterns; i++)
+            foreach (i; 0 .. aNumOfFilterPatterns)
             {
                 strcat(str, "'");
                 strcat(str, aFilterPatterns[i]);
@@ -7032,7 +7021,6 @@ const(char*) _colorChooser(
     ubyte[3] lDefaultRGB;
     const(char)* p;
     FILE* lIn;
-    int i;
     bool lWasZenity3;
     bool lWasOsascript;
     bool lWasXdialog;
@@ -7268,7 +7256,7 @@ if res[1] is not None:
         {
             return null;
         }
-        for (i = 1; i < 7; i++)
+        foreach (i; 1 .. 7)
         {
             if (!isxdigit(p[i]))
             {
