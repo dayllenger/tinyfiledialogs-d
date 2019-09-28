@@ -167,7 +167,8 @@ int tinyfd_messageBox(
     ---
     c_str passwd = tinyfd_inputBox("a password box",
         "your password will be revealed", null);
-    if (passwd) printf("your password is: %s\ n", passwd);
+    if (passwd)
+        printf("your password is: %s\ n", passwd);
     ---
 */
 c_str tinyfd_inputBox(c_str title, c_str message, c_str defaultInput)
@@ -191,6 +192,8 @@ c_str tinyfd_inputBox(c_str title, c_str message, c_str defaultInput)
     c_str filename = tinyfd_saveFileDialog(
         "Save D source file", "mod.d",
         cast(int)patterns.length, patterns.ptr, null);
+    if (filename)
+        tinyfd_messageBox("Chosen file is", filename, "ok", "info", 1);
     ---
 */
 c_str tinyfd_saveFileDialog(
@@ -209,7 +212,7 @@ c_str tinyfd_saveFileDialog(
         title = C-string or null
         defaultPathAndFile = C-string or null
         numOfFilterPatterns = 0
-        filterPatterns = `["*.jpg", "*.png"]`, or (sometimes) MIME type `["audio/mp3"]`, or null
+        filterPatterns = `["*.jpg", "*.png"]`, or (on unix) MIME type `["audio/mp3"]`, or null
         singleFilterDescription = "Image files" or null
         allowMultipleSelects = does not work on console
 
@@ -223,6 +226,8 @@ c_str tinyfd_saveFileDialog(
         "Open a C++ File", null,
         cast(int)patterns.length, patterns.ptr,
         "C++ source code", false);
+    if (filename)
+        tinyfd_messageBox("Chosen file is", filename, "ok", "info", 1);
     ---
 */
 c_str tinyfd_openFileDialog(
@@ -250,8 +255,6 @@ c_str tinyfd_openFileDialog(
     c_str name = tinyfd_selectFolderDialog("Let us just select a directory", null);
     if (name)
         tinyfd_messageBox("The selected folder is", name, "ok", "info", 1);
-    else
-        tinyfd_messageBox("Error", "Folder name is null", "ok", "error", 1);
     ---
 */
 c_str tinyfd_selectFolderDialog(c_str title, c_str defaultPath)
@@ -275,8 +278,6 @@ c_str tinyfd_selectFolderDialog(c_str title, c_str defaultPath)
         rgbColor, rgbColor);
     if (hexColor)
         tinyfd_messageBox("The selected hexcolor is", hexColor, "ok", "info", 1);
-    else
-        tinyfd_messageBox("Error", "hexcolor is null", "ok", "error", 1);
     ---
 */
 c_str tinyfd_colorChooser(
