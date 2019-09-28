@@ -211,7 +211,7 @@ c_str tinyfd_saveFileDialog(
         numOfFilterPatterns = 0
         filterPatterns = `["*.jpg", "*.png"]`, or (sometimes) MIME type `["audio/mp3"]`, or null
         singleFilterDescription = "Image files" or null
-        allowMultipleSelects = 0 or 1
+        allowMultipleSelects = does not work on console
 
     Returns:
         Selected file name or `null` on cancel. In case of multiple files, the separator is |.
@@ -222,7 +222,7 @@ c_str tinyfd_saveFileDialog(
     c_str filename = tinyfd_openFileDialog(
         "Open a C++ File", null,
         cast(int)patterns.length, patterns.ptr,
-        "C++ source code", 0);
+        "C++ source code", false);
     ---
 */
 c_str tinyfd_openFileDialog(
@@ -231,7 +231,7 @@ c_str tinyfd_openFileDialog(
     int numOfFilterPatterns,
     c_str* filterPatterns,
     c_str singleFilterDescription,
-    int allowMultipleSelects,
+    bool allowMultipleSelects,
 )
 {
     return _openFileDialog(title, defaultPathAndFile, numOfFilterPatterns,
@@ -327,27 +327,27 @@ or xterm + bash
    (opens console for basic input)
 or existing console for basic input`;
 
-/// 0 (default) or 1: on unix, prints the command line calls
-int tinyfd_verbose = 0;
-/// 1 (default) or 0: on unix, hide errors and warnings from called dialog
-int tinyfd_silent = 1;
+/// On unix, prints the command line calls; default is `false`
+bool tinyfd_verbose;
+/// On unix, hide errors and warnings from called dialog; default is `true
+bool tinyfd_silent = true;
 
 /** For unix & windows: 0 (graphic mode, default) or 1 (console mode).
 
-    0 - try to use a graphic solution, if it fails then it uses console mode.
-    1 - forces all dialogs into console mode even when an X server is present,
+    `false` - try to use a graphic solution, if it fails then it uses console mode.
+    `true` - forces all dialogs into console mode even when an X server is present,
     if the package dialog (and a console is present) or dialog.exe is installed.
     On windows it only make sense for console applications.
 */
 version (Windows)
 {
     version (TINYFD_NOLIB)
-        int tinyfd_forceConsole = 1;
+        bool tinyfd_forceConsole = true;
     else
-        int tinyfd_forceConsole = 0;
+        bool tinyfd_forceConsole;
 }
 else
-    int tinyfd_forceConsole = 0;
+    bool tinyfd_forceConsole;
 
 /** If you pass "tinyfd_query" as `title`, the functions will not display
     the dialogs but will return 0 for console mode, 1 for graphic mode.
@@ -406,7 +406,7 @@ version (Windows)
 
     version (TINYFD_NOLIB)
     {
-        int gWarningDisplayed = 1;
+        bool gWarningDisplayed = true;
         enum bool TINYFD_LIB = false;
     }
     else
@@ -434,7 +434,7 @@ version (Windows)
         extern(Windows) HRESULT CoInitializeEx(LPVOID, DWORD);
         extern(Windows) void CoUninitialize();
 
-        int gWarningDisplayed = 0;
+        bool gWarningDisplayed;
         enum bool TINYFD_LIB = true;
     }
 
@@ -461,7 +461,7 @@ else
     import core.sys.posix.unistd;
 
     enum SLASH = "/";
-    int gWarningDisplayed = 0;
+    bool gWarningDisplayed;
 }
 
 enum int MAX_PATH_OR_CMD = 1024; /* _MAX_PATH or MAX_PATH */
@@ -635,13 +635,9 @@ void replaceSubStr(const char* aSource,
     strcat(aoDestination, p);
 }
 
-int filenameValid(const char* aFileNameWithoutPath)
+bool filenameValid(const char* aFileNameWithoutPath)
 {
-    if (!aFileNameWithoutPath || !strlen(aFileNameWithoutPath) || strpbrk(aFileNameWithoutPath, "\\/:*?\"<>|"))
-    {
-        return 0;
-    }
-    return 1;
+    return SOME(aFileNameWithoutPath) && !strpbrk(aFileNameWithoutPath, "\\/:*?\"<>|");
 }
 
 void wipefile(const char* aFilename)
@@ -716,114 +712,87 @@ version (Windows)
 {
     version (TINYFD_NOLIB)
     {
-        int fileExists(const char* aFilePathAndName)
+        bool fileExists(const char* aFilePathAndName)
         {
-            FILE *lIn;
             if (!aFilePathAndName || !strlen(aFilePathAndName))
-            {
-                return 0;
-            }
+                return false;
 
             if (1) // was tinyfd_winUtf8
-                return 1; /* we cannot test */
+                return true; /* we cannot test */
 
-            lIn = fopen(aFilePathAndName, "r");
+            FILE* lIn = fopen(aFilePathAndName, "r");
             if (!lIn)
-            {
-                return 0;
-            }
+                return false;
             fclose(lIn);
-            return 1;
+            return true;
         }
     }
     else
     {
-        int fileExists(const char* aFilePathAndName)
+        bool fileExists(const char* aFilePathAndName)
         {
-            struct_stat lInfo;
-            wchar* lTmpWChar;
-            int lStatRet;
-            FILE *lIn;
-
             if (!aFilePathAndName || !strlen(aFilePathAndName))
-            {
-                return 0;
-            }
+                return false;
 
-            lTmpWChar = utf8to16(aFilePathAndName);
-            lStatRet = _wstat(lTmpWChar, &lInfo);
+            struct_stat lInfo;
+            wchar* lTmpWChar = utf8to16(aFilePathAndName);
+            int lStatRet = _wstat(lTmpWChar, &lInfo);
             free(lTmpWChar);
-            if (lStatRet != 0)
-                return 0;
-            else if (lInfo.st_mode & S_IFREG)
-                return 1;
-            else
-                return 0;
+            return lStatRet == 0 && (lInfo.st_mode & S_IFREG) != 0;
         }
     }
 }
 else // unix
 {
-    int fileExists(const char* aFilePathAndName)
+    bool fileExists(const char* aFilePathAndName)
     {
-        FILE *lIn;
         if (!aFilePathAndName || !strlen(aFilePathAndName))
-        {
-            return 0;
-        }
-        lIn = fopen(aFilePathAndName, "r");
+            return false;
+
+        FILE* lIn = fopen(aFilePathAndName, "r");
         if (!lIn)
-        {
-            return 0;
-        }
+            return false;
         fclose(lIn);
-        return 1;
+        return true;
     }
 }
 
 version (Windows) {
 
-int replaceChr(char* aString, const char aOldChr, const char aNewChr)
+bool replaceChr(char* aString, const char aOldChr, const char aNewChr)
 {
-    char* p;
-    int lRes = 0;
-
     if (!aString)
-    {
-        return 0;
-    }
-
+        return false;
     if (aOldChr == aNewChr)
-    {
-        return 0;
-    }
+        return false;
 
-    p = aString;
+    bool ret;
+    char* p = aString;
     while ((p = strchr(p, aOldChr)) !is null)
     {
         *p = aNewChr;
         p++;
-        lRes = 1;
+        ret = true;
     }
-    return lRes;
+    return ret;
 }
 
 version (TINYFD_NOLIB) {
 
-int dirExists(const char* aDirPath)
+bool dirExists(const char* aDirPath)
 {
     stat lInfo;
 
     if (!aDirPath || !strlen(aDirPath))
-        return 0;
+        return false;
     if (stat(aDirPath, &lInfo) != 0)
-        return 0;
+        return false;
     else if (1) // was tinyfd_winUtf8
-        return 1; /* we cannot test */
+        return true; /* we cannot test */
     else if (lInfo.st_mode & S_IFDIR)
-        return 1;
+        return true;
     else
-        return 0;
+        return false;
 }
 
 void _beep()
@@ -993,57 +962,41 @@ char* utf16to8(const wchar* aUtf16string)
     return lUtf8string;
 }
 
-int dirExists(const char* aDirPath)
+bool dirExists(const char* aDirPath)
 {
-    struct_stat lInfo;
-    wchar* lTmpWChar;
-    int lStatRet;
-    size_t lDirLen;
-
     if (!aDirPath)
-        return 0;
-    lDirLen = strlen(aDirPath);
+        return false;
+    size_t lDirLen = strlen(aDirPath);
     if (!lDirLen)
-        return 1;
-    if ((lDirLen == 2) && (aDirPath[1] == ':'))
-        return 1;
+        return true;
+    if (lDirLen == 2 && aDirPath[1] == ':')
+        return true;
 
-    lTmpWChar = utf8to16(aDirPath);
-    lStatRet = _wstat(lTmpWChar, &lInfo);
+    struct_stat lInfo;
+    wchar* lTmpWChar = utf8to16(aDirPath);
+    int lStatRet = _wstat(lTmpWChar, &lInfo);
     free(lTmpWChar);
-    if (lStatRet != 0)
-        return 0;
-    else if (lInfo.st_mode & S_IFDIR)
-        return 1;
-    else
-        return 0;
+    return lStatRet == 0 && (lInfo.st_mode & S_IFDIR) != 0;
 }
 
-int replaceWchar(wchar* aString, const wchar aOldChr, const wchar aNewChr)
+bool replaceWchar(wchar* aString, const wchar aOldChr, const wchar aNewChr)
 {
-    wchar* p;
-    int lRes = 0;
-
     if (!aString)
-    {
-        return 0;
-    }
-
+        return false;
     if (aOldChr == aNewChr)
-    {
-        return 0;
-    }
+        return false;
 
-    p = aString;
+    bool ret;
+    wchar* p = aString;
     while ((p = wcsrchr(p, aOldChr)) !is null)
     {
         *p = aNewChr;
         version (TINYFD_NOCCSUNICODE)
             p++;
         p++;
-        lRes = 1;
+        ret = true;
     }
-    return lRes;
+    return ret;
 }
 
 extern (Windows) int EnumThreadWndProc(HWND hwnd, LPARAM lParam)
@@ -1738,7 +1691,7 @@ const(wchar)* _openFileDialogW(
     const int aNumOfFilterPatterns,
     const wchar** aFilterPatterns,
     const wchar* aSingleFilterDescription,
-    const int aAllowMultipleSelects)
+    const bool aAllowMultipleSelects)
 {
     static wchar[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff;
 
@@ -1873,7 +1826,7 @@ const(char)* openFileDialogWinGui8(
     const int aNumOfFilterPatterns,
     const char** aFilterPatterns,
     const char* aSingleFilterDescription,
-    const int aAllowMultipleSelects)
+    const bool aAllowMultipleSelects)
 {
     wchar* lTitle;
     wchar* lDefaultPathAndFile;
@@ -2422,7 +2375,7 @@ const(char)* openFileDialogWinConsole(
     char* aoBuff,
     const char* aTitle,
     const char* aDefaultPathAndFile,
-    const int aAllowMultipleSelects)
+    const bool aAllowMultipleSelects)
 {
     char[MAX_PATH_OR_CMD] lFilterPatterns = "";
     char[MAX_PATH_OR_CMD] str_buf;
@@ -2550,7 +2503,7 @@ int _messageBox(
     int aDefaultButton)
 {
     char lChar;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
 
     if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
     {
@@ -2581,7 +2534,7 @@ int _messageBox(
         }
         if (!gWarningDisplayed && !tinyfd_forceConsole)
         {
-            gWarningDisplayed = 1;
+            gWarningDisplayed = true;
             printf("\n\n%s\n", gTitle.ptr);
             printf("%s\n\n", tinyfd_needs.ptr);
         }
@@ -2650,7 +2603,7 @@ int _notifyPopup(
     const char* aMessage,
     const char* aIconType)
 {
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
 
     if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) &&
         (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
@@ -2675,7 +2628,7 @@ const(char*) _inputBox(
 {
     static char[MAX_PATH_OR_CMD] lBuff;
     char* lEOF;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
 
     version (TINYFD_LIB) {
         DWORD mode = 0;
@@ -2712,7 +2665,7 @@ const(char*) _inputBox(
         lBuff[0] = '\0';
         if (!gWarningDisplayed && !tinyfd_forceConsole)
         {
-            gWarningDisplayed = 1;
+            gWarningDisplayed = true;
             printf("\n\n%s\n", gTitle.ptr);
             printf("%s\n\n", tinyfd_needs.ptr);
         }
@@ -2762,7 +2715,7 @@ const(char*) _saveFileDialog(
     const char* aSingleFilterDescription)
 {
     static char[MAX_PATH_OR_CMD] lBuff;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char[MAX_PATH_OR_CMD] lString;
     const(char)* p;
     lBuff[0] = '\0';
@@ -2819,10 +2772,10 @@ const(char*) _openFileDialog(
     const int aNumOfFilterPatterns,
     const char** aFilterPatterns,
     const char* aSingleFilterDescription,
-    const int aAllowMultipleSelects)
+    const bool aAllowMultipleSelects)
 {
     static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     const(char)* p;
 
     if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
@@ -2875,7 +2828,7 @@ const(char*) _openFileDialog(
 const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
     static char[MAX_PATH_OR_CMD] lBuff;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     const(char)* p;
 
     if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
@@ -2920,7 +2873,7 @@ const(char*) _colorChooser(
     ref const ubyte[3] aDefaultRGB,
     ref ubyte[3] aoResultRGB)
 {
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char[8] lDefaultHexRGB;
     char* lpDefaultHexRGB;
     int i;
@@ -2981,42 +2934,39 @@ int isDarwin()
     return ret;
 }
 
-int dirExists(const char* aDirPath)
+bool dirExists(const char* aDirPath)
 {
-    DIR *lDir;
     if (!aDirPath || !strlen(aDirPath))
-        return 0;
-    lDir = opendir(aDirPath);
+        return false;
+    DIR* lDir = opendir(aDirPath);
     if (!lDir)
-    {
-        return 0;
-    }
+        return false;
     closedir(lDir);
-    return 1;
+    return true;
 }
 
-int detectPresence(const char* aExecutable)
+bool detectPresence(const char* aExecutable)
 {
     char[MAX_PATH_OR_CMD] lBuff;
     char[MAX_PATH_OR_CMD] lTestedString = "which ";
-    FILE *lIn;
 
     strcat(lTestedString.ptr, aExecutable);
     strcat(lTestedString.ptr, " 2>/dev/null ");
-    lIn = popen(lTestedString.ptr, "r");
-    if ((fgets(lBuff.ptr, lBuff.sizeof, lIn) !is null) && (!strchr(lBuff.ptr, ':')) && (strncmp(lBuff.ptr, "no ", 3)))
-    { /* present */
+    FILE* lIn = popen(lTestedString.ptr, "r");
+    if (fgets(lBuff.ptr, lBuff.sizeof, lIn) !is null && !strchr(lBuff.ptr, ':') && strncmp(lBuff.ptr, "no ", 3))
+    {
+        // present
         pclose(lIn);
         if (tinyfd_verbose)
             printf("detectPresence %s %d\n", aExecutable, 1);
-        return 1;
+        return true;
     }
     else
     {
         pclose(lIn);
         if (tinyfd_verbose)
             printf("detectPresence %s %d\n", aExecutable, 0);
-        return 0;
+        return false;
     }
 }
 
@@ -3057,22 +3007,13 @@ const(int)* getMajorMinorPatch(const char* aExecutable)
     return lArray.ptr;
 }
 
-int tryCommand(const char* aCommand)
+bool tryCommand(const char* aCommand)
 {
     char[MAX_PATH_OR_CMD] lBuff;
-    FILE *lIn;
-
-    lIn = popen(aCommand, "r");
-    if (fgets(lBuff.ptr, lBuff.sizeof, lIn) is null)
-    { /* present */
-        pclose(lIn);
-        return 1;
-    }
-    else
-    {
-        pclose(lIn);
-        return 0;
-    }
+    FILE* lIn = popen(aCommand, "r");
+    const bool present = fgets(lBuff.ptr, lBuff.sizeof, lIn) is null;
+    pclose(lIn);
+    return present;
 }
 
 int isTerminalRunning()
@@ -3106,7 +3047,7 @@ const(char)* dialogNameOnly()
     return ret.ptr;
 }
 
-int isDialogVersionBetter09b()
+bool isDialogVersionBetter09b()
 {
     const(char)* lDialogName;
     char* lVersion;
@@ -3123,7 +3064,7 @@ int isDialogVersionBetter09b()
     lDialogName = dialogNameOnly();
     lVersion = cast(char*)getVersion(lDialogName);
     if (!strlen(lDialogName) || !lVersion)
-        return 0;
+        return false;
     /*lVersion = lTest ;*/
     /*printf("lVersion %s\n", lVersion);*/
     strcpy(lBuff.ptr, lVersion);
@@ -3140,9 +3081,7 @@ int isDialogVersionBetter09b()
     strcpy(lVersion, lBuff.ptr);
     strtok(lLetter, " ,.-");
     /*printf("lLetter %s\n", lLetter);*/
-    lResult = (lMajor > 0) || ((lMinor == 9) && (*lLetter == 'b') && (lDate >= 20031126));
-    /*printf("lResult %d\n", lResult);*/
-    return lResult;
+    return lMajor > 0 || (lMinor == 9 && *lLetter == 'b' && lDate >= 20031126);
 }
 
 int whiptailPresentOnly()
@@ -3852,12 +3791,12 @@ int _messageBox(
     int aDefaultButton)
 {
     char[MAX_PATH_OR_CMD] lBuff;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char* str = null;
     char* lpDialogString;
     FILE *lIn;
-    int lWasGraphicDialog = 0;
-    int lWasXterm = 0;
+    bool lWasGraphicDialog;
+    bool lWasXterm;
     int lResult;
     char lChar;
     termios infoOri;
@@ -4480,7 +4419,7 @@ else:
                 response("gdialog");
                 return 1;
             }
-            lWasGraphicDialog = 1;
+            lWasGraphicDialog = true;
             strcpy(str, "(gdialog ");
         }
         else if (xdialogPresent())
@@ -4490,7 +4429,7 @@ else:
                 response("xdialog");
                 return 1;
             }
-            lWasGraphicDialog = 1;
+            lWasGraphicDialog = true;
             strcpy(str, "(Xdialog ");
         }
         else if (dialogName())
@@ -4506,7 +4445,7 @@ else:
             }
             else
             {
-                lWasXterm = 1;
+                lWasXterm = true;
                 strcpy(str, terminalName());
                 strcat(str, "'(");
                 strcat(str, dialogName());
@@ -4529,7 +4468,7 @@ else:
                 response("whiptail");
                 return 0;
             }
-            lWasXterm = 1;
+            lWasXterm = true;
             strcpy(str, terminalName());
             strcat(str, "'(whiptail ");
         }
@@ -4644,7 +4583,7 @@ else:
         strcat(str, "'");
         if (!gWarningDisplayed && !tinyfd_forceConsole)
         {
-            gWarningDisplayed = 1;
+            gWarningDisplayed = true;
             strcat(str, "echo \"");
             strcat(str, gTitle.ptr);
             strcat(str, "\";");
@@ -4788,7 +4727,7 @@ else:
         }
         if (!gWarningDisplayed && !tinyfd_forceConsole)
         {
-            gWarningDisplayed = 1;
+            gWarningDisplayed = true;
             printf("\n\n%s\n", gTitle.ptr);
             printf("%s\n\n", tinyfd_needs.ptr);
         }
@@ -4914,7 +4853,7 @@ int _notifyPopup(
     FILE *lIn;
     size_t lTitleLen;
     size_t lMessageLen;
-    int lQuery;
+    bool lQuery;
 
     if (getenv("SSH_TTY"))
     {
@@ -5148,15 +5087,15 @@ const(char*) _inputBox(
     const char* aDefaultInput)
 {
     static char[MAX_PATH_OR_CMD] lBuff;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char* str = null;
     char* lpDialogString;
     FILE *lIn;
     int lResult;
-    int lWasGdialog = 0;
-    int lWasGraphicDialog = 0;
-    int lWasXterm = 0;
-    int lWasBasicXterm = 0;
+    bool lWasGdialog;
+    bool lWasGraphicDialog;
+    bool lWasXterm;
+    bool lWasBasicXterm;
     termios oldt;
     termios newt;
     char* lEOF;
@@ -5470,8 +5409,8 @@ const(char*) _inputBox(
                 response("gdialog");
                 return cast(const(char)*)1;
             }
-            lWasGraphicDialog = 1;
-            lWasGdialog = 1;
+            lWasGraphicDialog = true;
+            lWasGdialog = true;
             strcpy(str, "(gdialog ");
         }
         else if (xdialogPresent())
@@ -5481,7 +5420,7 @@ const(char*) _inputBox(
                 response("xdialog");
                 return cast(const(char)*)1;
             }
-            lWasGraphicDialog = 1;
+            lWasGraphicDialog = true;
             strcpy(str, "(Xdialog ");
         }
         else if (dialogName())
@@ -5497,7 +5436,7 @@ const(char*) _inputBox(
             }
             else
             {
-                lWasXterm = 1;
+                lWasXterm = true;
                 strcpy(str, terminalName());
                 strcat(str, "'(");
                 strcat(str, dialogName());
@@ -5520,7 +5459,7 @@ const(char*) _inputBox(
                 response("whiptail");
                 return cast(const(char)*)0;
             }
-            lWasXterm = 1;
+            lWasXterm = true;
             strcpy(str, terminalName());
             strcat(str, "'(whiptail ");
         }
@@ -5596,12 +5535,12 @@ const(char*) _inputBox(
             response("basicinput");
             return cast(const(char)*)0;
         }
-        lWasBasicXterm = 1;
+        lWasBasicXterm = true;
         strcpy(str, terminalName());
         strcat(str, "'");
         if (!gWarningDisplayed && !tinyfd_forceConsole)
         {
-            gWarningDisplayed = 1;
+            gWarningDisplayed = true;
             _messageBox(gTitle.ptr, tinyfd_needs.ptr, "ok", "warning", 0);
         }
         if (SOME(aTitle) && !tinyfd_forceConsole)
@@ -5628,7 +5567,7 @@ const(char*) _inputBox(
     }
     else if (!gWarningDisplayed && !isTerminalRunning() && !terminalName())
     {
-        gWarningDisplayed = 1;
+        gWarningDisplayed = true;
         _messageBox(gTitle.ptr, tinyfd_needs.ptr, "ok", "warning", 0);
         if (lQuery)
         {
@@ -5646,7 +5585,7 @@ const(char*) _inputBox(
         }
         if (!gWarningDisplayed && !tinyfd_forceConsole)
         {
-            gWarningDisplayed = 1;
+            gWarningDisplayed = true;
             _messageBox(gTitle.ptr, tinyfd_needs.ptr, "ok", "warning", 0);
         }
         if (SOME(aTitle))
@@ -5771,14 +5710,14 @@ const(char*) _saveFileDialog(
     const char* aSingleFilterDescription)
 {
     static char[MAX_PATH_OR_CMD] lBuff;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char[MAX_PATH_OR_CMD] str_buf1;
     char[MAX_PATH_OR_CMD] str_buf2;
     char* str = str_buf1.ptr;
     char* lString = str_buf2.ptr;
     int i;
-    int lWasGraphicDialog = 0;
-    int lWasXterm = 0;
+    bool lWasGraphicDialog;
+    bool lWasXterm;
     const(char)* p;
     FILE *lIn;
     lBuff[0] = '\0';
@@ -6096,7 +6035,7 @@ const(char*) _saveFileDialog(
                 response("xdialog");
                 return cast(const(char)*)1;
             }
-            lWasGraphicDialog = 1;
+            lWasGraphicDialog = true;
             strcpy(str, "(Xdialog ");
         }
         else if (isTerminalRunning())
@@ -6115,7 +6054,7 @@ const(char*) _saveFileDialog(
                 response("dialog");
                 return cast(const(char)*)0;
             }
-            lWasXterm = 1;
+            lWasXterm = true;
             strcpy(str, terminalName());
             strcat(str, "'(");
             strcat(str, dialogName());
@@ -6230,10 +6169,10 @@ const(char*) _openFileDialog(
     const int aNumOfFilterPatterns,
     const char** aFilterPatterns,
     const char* aSingleFilterDescription,
-    const int aAllowMultipleSelects)
+    const bool aAllowMultipleSelects)
 {
     static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char[MAX_PATH_OR_CMD] str_buf1;
     char[MAX_PATH_OR_CMD] str_buf2;
     char* str = str_buf1.ptr;
@@ -6242,9 +6181,9 @@ const(char*) _openFileDialog(
     FILE *lIn;
     char* p;
     const(char)* p2;
-    int lWasKdialog = 0;
-    int lWasGraphicDialog = 0;
-    int lWasXterm = 0;
+    bool lWasKdialog;
+    bool lWasGraphicDialog;
+    bool lWasXterm;
     lBuff[0] = '\0';
 
     if (osascriptPresent())
@@ -6323,7 +6262,7 @@ const(char*) _openFileDialog(
             response("kdialog");
             return cast(const(char)*)1;
         }
-        lWasKdialog = 1;
+        lWasKdialog = true;
 
         strcpy(str, "kdialog");
         if (kdialogPresent() == 2)
@@ -6624,7 +6563,7 @@ else:
                 response("xdialog");
                 return cast(const(char)*)1;
             }
-            lWasGraphicDialog = 1;
+            lWasGraphicDialog = true;
             strcpy(str, "(Xdialog ");
         }
         else if (isTerminalRunning())
@@ -6643,7 +6582,7 @@ else:
                 response("dialog");
                 return cast(const(char)*)0;
             }
-            lWasXterm = 1;
+            lWasXterm = true;
             strcpy(str, terminalName());
             strcat(str, "'(");
             strcat(str, dialogName());
@@ -6766,13 +6705,13 @@ else:
 const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
     static char[MAX_PATH_OR_CMD] lBuff;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char[MAX_PATH_OR_CMD] str_buf;
     char* str = str_buf.ptr;
     FILE *lIn;
     const(char)* p;
-    int lWasGraphicDialog = 0;
-    int lWasXterm = 0;
+    bool lWasGraphicDialog;
+    bool lWasXterm;
     lBuff[0] = '\0';
 
     if (osascriptPresent())
@@ -6974,7 +6913,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
                 response("xdialog");
                 return cast(const(char)*)1;
             }
-            lWasGraphicDialog = 1;
+            lWasGraphicDialog = true;
             strcpy(str, "(Xdialog ");
         }
         else if (isTerminalRunning())
@@ -6993,7 +6932,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
                 response("dialog");
                 return cast(const(char)*)0;
             }
-            lWasXterm = 1;
+            lWasXterm = true;
             strcpy(str, terminalName());
             strcat(str, "'(");
             strcat(str, dialogName());
@@ -7089,7 +7028,7 @@ const(char*) _colorChooser(
     ref ubyte[3] aoResultRGB)
 {
     static char[128] lBuff;
-    int lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     char[128] tmp_buf;
     char[MAX_PATH_OR_CMD] str_buf;
     char* lTmp = tmp_buf.ptr;
@@ -7100,9 +7039,9 @@ const(char*) _colorChooser(
     const(char)* p;
     FILE *lIn;
     int i;
-    int lWasZenity3 = 0;
-    int lWasOsascript = 0;
-    int lWasXdialog = 0;
+    bool lWasZenity3;
+    bool lWasOsascript;
+    bool lWasXdialog;
     lBuff[0] = '\0';
 
     if (aDefaultHexRGB)
@@ -7126,7 +7065,7 @@ const(char*) _colorChooser(
             response("applescript");
             return cast(const(char)*)1;
         }
-        lWasOsascript = 1;
+        lWasOsascript = true;
         strcpy(str, "osascript");
 
         if (!osx9orBetter())
@@ -7186,7 +7125,7 @@ const(char*) _colorChooser(
     }
     else if (zenity3Present() || matedialogPresent() || shellementaryPresent() || qarmaPresent())
     {
-        lWasZenity3 = 1;
+        lWasZenity3 = true;
         if (zenity3Present())
         {
             if (lQuery)
@@ -7250,7 +7189,7 @@ const(char*) _colorChooser(
             response("xdialog");
             return cast(const(char)*)1;
         }
-        lWasXdialog = 1;
+        lWasXdialog = true;
         strcpy(str, "Xdialog --colorsel \"");
         if (SOME(aTitle))
         {
