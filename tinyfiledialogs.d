@@ -474,6 +474,26 @@ bool SOME(const char* str)
     return str && str[0] != '\0';
 }
 
+char lastch(const char* str)
+{
+    if (str)
+    {
+        size_t len = strlen(str);
+        if (len > 0)
+            return str[len - 1];
+    }
+    return '\0';
+}
+
+void removeLastNL(char* str)
+{
+    size_t len = strlen(str);
+    if (len > 0 && str[len - 1] == '\n')
+    {
+        str[len - 1] = '\0';
+    }
+}
+
 void response(const char* message)
 {
     strcpy(tinyfd_response.ptr, message);
@@ -1511,6 +1531,7 @@ version (TINYFD_NOCCSUNICODE) {
     if (aDefaultInput)
     {
         lDialogStringLen = wcslen(lBuff.ptr);
+        assert(lDialogStringLen >= 2);
         lBuff[lDialogStringLen - 1] = '\0';
         lBuff[lDialogStringLen - 2] = '\0';
     }
@@ -1519,7 +1540,11 @@ version (TINYFD_NOCCSUNICODE) {
 } else {
 
     if (aDefaultInput)
-        lBuff[wcslen(lBuff.ptr) - 1] = '\0';
+    {
+        lDialogStringLen = wcslen(lBuff.ptr);
+        assert(lDialogStringLen > 0);
+        lBuff[lDialogStringLen - 1] = '\0';
+    }
     return lBuff.ptr + 1;
 }
 }
@@ -2103,10 +2128,7 @@ int dialogPresent()
         {
         }
         _pclose(lIn);
-        if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-        {
-            lBuff[strlen(lBuff.ptr) - 1] = '\0';
-        }
+        removeLastNL(lBuff.ptr);
         if (strcmp(lBuff.ptr + strlen(lBuff.ptr) - strlen(lString), lString))
         {
             lDialogPresent = 0;
@@ -2216,10 +2238,7 @@ int messageBoxWinConsole(
     }
     fclose(lIn);
     remove(lDialogFile);
-    if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-    {
-        lBuff[strlen(lBuff.ptr) - 1] = '\0';
-    }
+    removeLastNL(lBuff.ptr);
 
     /* if (tinyfd_verbose) printf("lBuff: %s\n", lBuff.ptr); */
     if (!strlen(lBuff.ptr))
@@ -2318,10 +2337,7 @@ const(char)* inputBoxWinConsole(
 
     wipefile(lDialogFile);
     remove(lDialogFile);
-    if (aoBuff[strlen(aoBuff) - 1] == '\n')
-    {
-        aoBuff[strlen(aoBuff) - 1] = '\0';
-    }
+    removeLastNL(aoBuff);
     /* printf( "aoBuff: %s\n" , aoBuff ) ; */
 
     /* printf( "aoBuff: %s len: %lu \n" , aoBuff , strlen(aoBuff) ) ; */
@@ -2733,10 +2749,7 @@ const(char*) _inputBox(
         {
             return null;
         }
-        if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-        {
-            lBuff[strlen(lBuff.ptr) - 1] = '\0';
-        }
+        removeLastNL(lBuff.ptr);
         return lBuff.ptr;
     }
 }
@@ -4868,10 +4881,7 @@ else:
     pclose(lIn);
 
     /* printf( "lBuff: %s len: %lu \n" , lBuff , strlen(lBuff.ptr) ) ; */
-    if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-    {
-        lBuff[strlen(lBuff.ptr) - 1] = '\0';
-    }
+    removeLastNL(lBuff.ptr);
     /* printf( "lBuff1: %s len: %lu \n" , lBuff , strlen(lBuff.ptr) ) ; */
 
     if (aDialogType && !strcmp("yesnocancel", aDialogType))
@@ -5687,10 +5697,7 @@ const(char*) _inputBox(
             free(str);
             return null;
         }
-        if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-        {
-            lBuff[strlen(lBuff.ptr) - 1] = '\0';
-        }
+        removeLastNL(lBuff.ptr);
         free(str);
         return lBuff.ptr;
     }
@@ -5732,10 +5739,7 @@ const(char*) _inputBox(
 
     /* printf( "len Buff: %lu\n" , strlen(lBuff.ptr) ) ; */
     /* printf( "lBuff0: %s\n" , lBuff ) ; */
-    if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-    {
-        lBuff[strlen(lBuff.ptr) - 1] = '\0';
-    }
+    removeLastNL(lBuff.ptr);
     /* printf( "lBuff1: %s len: %lu \n" , lBuff , strlen(lBuff.ptr) ) ; */
     if (lWasBasicXterm)
     {
@@ -6007,8 +6011,8 @@ const(char*) _saveFileDialog(
                 strcat(str, "',");
             }
         }
-        if ((aNumOfFilterPatterns > 1) || ((aNumOfFilterPatterns == 1) /* test because poor osx behaviour */
-                                           && (aFilterPatterns[0][strlen(aFilterPatterns[0]) - 1] != '*')))
+        if (aNumOfFilterPatterns > 1 || (aNumOfFilterPatterns == 1 // test because poor osx behaviour
+                                         && lastch(aFilterPatterns[0]) != '*'))
         {
             strcat(str, "filetypes=(");
             strcat(str, "('");
@@ -6062,8 +6066,8 @@ const(char*) _saveFileDialog(
                 strcat(str, "',");
             }
         }
-        if ((aNumOfFilterPatterns > 1) || ((aNumOfFilterPatterns == 1) /* test because poor osx behaviour */
-                                           && (aFilterPatterns[0][strlen(aFilterPatterns[0]) - 1] != '*')))
+        if (aNumOfFilterPatterns > 1 || (aNumOfFilterPatterns == 1 // test because poor osx behaviour
+                                         && lastch(aFilterPatterns[0]) != '*'))
         {
             strcat(str, "filetypes=(");
             strcat(str, "('");
@@ -6201,10 +6205,7 @@ const(char*) _saveFileDialog(
     {
     }
     pclose(lIn);
-    if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-    {
-        lBuff[strlen(lBuff.ptr) - 1] = '\0';
-    }
+    removeLastNL(lBuff.ptr);
     /* printf( "lBuff: %s\n" , lBuff ) ; */
     if (!strlen(lBuff.ptr))
     {
@@ -6518,8 +6519,8 @@ const(char*) _openFileDialog(
                 strcat(str, "',");
             }
         }
-        if ((aNumOfFilterPatterns > 1) || ((aNumOfFilterPatterns == 1) /*test because poor osx behaviour*/
-                                           && (aFilterPatterns[0][strlen(aFilterPatterns[0]) - 1] != '*')))
+        if (aNumOfFilterPatterns > 1 || (aNumOfFilterPatterns == 1 // test because poor osx behaviour
+                                         && lastch(aFilterPatterns[0]) != '*'))
         {
             strcat(str, "filetypes=(");
             strcat(str, "('");
@@ -6585,8 +6586,8 @@ else:
                 strcat(str, "',");
             }
         }
-        if ((aNumOfFilterPatterns > 1) || ((aNumOfFilterPatterns == 1) /*test because poor osx behaviour*/
-                                           && (aFilterPatterns[0][strlen(aFilterPatterns[0]) - 1] != '*')))
+        if (aNumOfFilterPatterns > 1 || (aNumOfFilterPatterns == 1 // test because poor osx behaviour
+                                         && lastch(aFilterPatterns[0]) != '*'))
         {
             strcat(str, "filetypes=(");
             strcat(str, "('");
@@ -6729,10 +6730,7 @@ else:
         p += strlen(p);
     }
     pclose(lIn);
-    if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-    {
-        lBuff[strlen(lBuff.ptr) - 1] = '\0';
-    }
+    removeLastNL(lBuff.ptr);
     /* printf( "lBuff: %s\n" , lBuff ) ; */
     if (lWasKdialog && aAllowMultipleSelects)
     {
@@ -7075,10 +7073,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
     {
     }
     pclose(lIn);
-    if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-    {
-        lBuff[strlen(lBuff.ptr) - 1] = '\0';
-    }
+    removeLastNL(lBuff.ptr);
     /* printf( "lBuff: %s\n" , lBuff ) ; */
     if (!strlen(lBuff.ptr) || !dirExists(lBuff.ptr))
     {
@@ -7368,10 +7363,7 @@ if res[1] is not None:
     }
     /* printf( "len Buff: %lu\n" , strlen(lBuff.ptr) ) ; */
     /* printf( "lBuff0: %s\n" , lBuff ) ; */
-    if (lBuff[strlen(lBuff.ptr) - 1] == '\n')
-    {
-        lBuff[strlen(lBuff.ptr) - 1] = '\0';
-    }
+    removeLastNL(lBuff.ptr);
 
     if (lWasZenity3)
     {
