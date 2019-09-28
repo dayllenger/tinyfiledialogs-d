@@ -363,7 +363,7 @@ else
     ---
     import core.stdc.string;
 
-    char[1024] buf;
+    char[1024] buf = '\0';
     c_str mode = tinyfd_inputBox("tinyfd_query", null, null);
 
     strcpy(buf.ptr, "v");
@@ -379,7 +379,7 @@ else
     tinyfd_messageBox("Hello", buf.ptr, "ok", "info", 0);
     ---
 */
-char[1024] tinyfd_response;
+char[1024] tinyfd_response = '\0';
 
 /**************************** IMPLEMENTATION ****************************/
 
@@ -571,7 +571,7 @@ void ensureFinalSlash(char* aioString)
 
 void Hex2RGB(const char* aHexRGB, ref ubyte[3] aoResultRGB)
 {
-    char[8] lColorChannel;
+    char[8] lColorChannel = '\0';
     if (aHexRGB)
     {
         strcpy(lColorChannel.ptr, aHexRGB);
@@ -887,7 +887,7 @@ wchar* getLastNameW(
 
 void Hex2RGBW(const wchar* aHexRGB, ref ubyte[3] aoResultRGB)
 {
-    wchar[8] lColorChannel;
+    wchar[8] lColorChannel = '\0';
     if (aHexRGB)
     {
         wcscpy(lColorChannel.ptr, aHexRGB);
@@ -1001,7 +1001,7 @@ bool replaceWchar(wchar* aString, const wchar aOldChr, const wchar aNewChr)
 
 extern (Windows) int EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 {
-    wchar[MAX_PATH] lTitleName;
+    wchar[MAX_PATH] lTitleName = '\0';
     GetWindowTextW(hwnd, lTitleName.ptr, MAX_PATH);
     /* wprintf("lTitleName %ls \n", lTitleName.ptr);  */
     if (wcscmp("tinyfiledialogsTopWindow", lTitleName.ptr) == 0)
@@ -1014,14 +1014,12 @@ extern (Windows) int EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 
 void hiddenConsoleW(const wchar* aString, const wchar* aDialogTitle, const int aInFront)
 {
-    STARTUPINFOW StartupInfo;
-    PROCESS_INFORMATION ProcessInfo;
-
     if (!aString || !wcslen(aString))
         return;
 
-    memset(&StartupInfo, 0, StartupInfo.sizeof);
-    StartupInfo.cb = STARTUPINFOW.sizeof;
+    STARTUPINFOW StartupInfo;
+    PROCESS_INFORMATION ProcessInfo;
+
     StartupInfo.dwFlags = STARTF_USESHOWWINDOW;
     StartupInfo.wShowWindow = SW_HIDE;
 
@@ -1238,7 +1236,7 @@ const(wchar)* _inputBoxW(
     const wchar* aMessage,
     const wchar* aDefaultInput)
 {
-    static wchar[MAX_PATH_OR_CMD] lBuff;
+    static wchar[MAX_PATH_OR_CMD] lBuff = '\0';
     wchar* str;
     FILE *lIn;
     FILE *lFile;
@@ -1441,7 +1439,7 @@ version (TINYFD_NOCCSUNICODE) {
         return null;
     }
 
-    memset(lBuff.ptr, 0, MAX_PATH_OR_CMD);
+    lBuff = '\0';
 
 version (TINYFD_NOCCSUNICODE) {
     fgets(cast(char*)lBuff.ptr, 2 * MAX_PATH_OR_CMD, lIn);
@@ -1543,10 +1541,10 @@ const(wchar)* _saveFileDialogW(
     const wchar** aFilterPatterns,
     const wchar* aSingleFilterDescription)
 {
-    static wchar[MAX_PATH_OR_CMD] lBuff;
-    wchar[MAX_PATH_OR_CMD] lDirname;
-    wchar[MAX_PATH_OR_CMD] str;
-    wchar[MAX_PATH_OR_CMD] lFilterPatterns_buf = "";
+    static wchar[MAX_PATH_OR_CMD] lBuff = '\0';
+    wchar[MAX_PATH_OR_CMD] lDirname = '\0';
+    wchar[MAX_PATH_OR_CMD] str = '\0';
+    wchar[MAX_PATH_OR_CMD] lFilterPatterns_buf = '\0';
     wchar* lFilterPatterns = lFilterPatterns_buf.ptr;
     wchar* p;
     wchar* lRetval;
@@ -1693,12 +1691,12 @@ const(wchar)* _openFileDialogW(
     const wchar* aSingleFilterDescription,
     const bool aAllowMultipleSelects)
 {
-    static wchar[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff;
+    static wchar[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
 
     size_t[MAX_MULTIPLE_FILES] lLengths;
-    wchar[MAX_PATH_OR_CMD] lDirname;
-    wchar[MAX_PATH_OR_CMD] str;
-    wchar[MAX_PATH_OR_CMD] lFilterPatterns_buf = "";
+    wchar[MAX_PATH_OR_CMD] lDirname = '\0';
+    wchar[MAX_PATH_OR_CMD] str = '\0';
+    wchar[MAX_PATH_OR_CMD] lFilterPatterns_buf = '\0';
     wchar* lFilterPatterns = lFilterPatterns_buf.ptr;
     wchar*[MAX_MULTIPLE_FILES] lPointers;
     wchar* lRetval, p;
@@ -1888,7 +1886,7 @@ extern (Windows) int BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM
 
 const(wchar)* tinyfd_selectFolderDialogW(const wchar* aTitle, const wchar* aDefaultPath)
 {
-    static wchar[MAX_PATH_OR_CMD] lBuff;
+    static wchar[MAX_PATH_OR_CMD] lBuff = '\0';
 
     BROWSEINFOW bInfo;
     LPITEMIDLIST lpItem;
@@ -1966,7 +1964,7 @@ const(wchar)* _colorChooserW(
     ref const ubyte[3] aDefaultRGB,
     ref ubyte[3] aoResultRGB)
 {
-    static wchar[8] lResultHexRGB;
+    static wchar[8] lResultHexRGB = '\0';
     CHOOSECOLORW cc;
     COLORREF[16] crCustColors;
     ubyte[3] lDefaultRGB;
@@ -2031,7 +2029,7 @@ const(char)* colorChooserWinGui8(
     ref const ubyte[3] aDefaultRGB,
     ref ubyte[3] aoResultRGB)
 {
-    static char[8] lResultHexRGB;
+    static char[8] lResultHexRGB = '\0';
 
     wchar* lTitle;
     wchar* lDefaultHexRGB;
@@ -2066,7 +2064,7 @@ const(char)* colorChooserWinGui8(
 int dialogPresent()
 {
     static int lDialogPresent = -1;
-    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
     FILE *lIn;
     const char* lString = "dialog.exe";
     if (lDialogPresent < 0)
@@ -2101,12 +2099,12 @@ int messageBoxWinConsole(
     const char* aIconType,
     const int aDefaultButton)
 {
-    char[MAX_PATH_OR_CMD] str_buf;
-    char[MAX_PATH_OR_CMD] lDialogFile_buf;
+    char[MAX_PATH_OR_CMD] str_buf = '\0';
+    char[MAX_PATH_OR_CMD] lDialogFile_buf = '\0';
     char* str = str_buf.ptr;
     char* lDialogFile = lDialogFile_buf.ptr;
     FILE *lIn;
-    char[MAX_PATH_OR_CMD] lBuff = "";
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
 
     strcpy(str, "dialog ");
     if (SOME(aTitle))
@@ -2216,8 +2214,8 @@ const(char)* inputBoxWinConsole(
     const char* aMessage,
     const char* aDefaultInput)
 {
-    char[MAX_PATH_OR_CMD] str_buf;
-    char[MAX_PATH_OR_CMD] lDialogFile_buf;
+    char[MAX_PATH_OR_CMD] str_buf = '\0';
+    char[MAX_PATH_OR_CMD] lDialogFile_buf = '\0';
     char* str = str_buf.ptr;
     char* lDialogFile = lDialogFile_buf.ptr;
     FILE *lIn;
@@ -2309,8 +2307,8 @@ const(char)* saveFileDialogWinConsole(
     const char* aTitle,
     const char* aDefaultPathAndFile)
 {
-    char[MAX_PATH_OR_CMD] str_buf;
-    char[MAX_PATH_OR_CMD] lPathAndFile_buf = "";
+    char[MAX_PATH_OR_CMD] str_buf = '\0';
+    char[MAX_PATH_OR_CMD] lPathAndFile_buf = '\0';
     char* str = str_buf.ptr;
     char* lPathAndFile = lPathAndFile_buf.ptr;
     FILE *lIn;
@@ -2377,8 +2375,8 @@ const(char)* openFileDialogWinConsole(
     const char* aDefaultPathAndFile,
     const bool aAllowMultipleSelects)
 {
-    char[MAX_PATH_OR_CMD] lFilterPatterns = "";
-    char[MAX_PATH_OR_CMD] str_buf;
+    char[MAX_PATH_OR_CMD] lFilterPatterns = '\0';
+    char[MAX_PATH_OR_CMD] str_buf = '\0';
     char* str = str_buf.ptr;
     FILE *lIn;
 
@@ -2438,8 +2436,8 @@ const(char)* selectFolderDialogWinConsole(
     const char* aTitle,
     const char* aDefaultPath)
 {
-    char[MAX_PATH_OR_CMD] str_buf;
-    char[MAX_PATH_OR_CMD] lString_buf;
+    char[MAX_PATH_OR_CMD] str_buf = '\0';
+    char[MAX_PATH_OR_CMD] lString_buf = '\0';
     char* str = str_buf.ptr;
     char* lString = lString_buf.ptr;
     FILE *lIn;
@@ -2626,7 +2624,7 @@ const(char*) _inputBox(
     const char* aMessage,
     const char* aDefaultInput)
 {
-    static char[MAX_PATH_OR_CMD] lBuff;
+    static char[MAX_PATH_OR_CMD] lBuff = '\0';
     char* lEOF;
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
 
@@ -2714,9 +2712,9 @@ const(char*) _saveFileDialog(
     const char** aFilterPatterns,
     const char* aSingleFilterDescription)
 {
-    static char[MAX_PATH_OR_CMD] lBuff;
+    static char[MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char[MAX_PATH_OR_CMD] lString;
+    char[MAX_PATH_OR_CMD] lString = '\0';
     const(char)* p;
     lBuff[0] = '\0';
 
@@ -2774,7 +2772,7 @@ const(char*) _openFileDialog(
     const char* aSingleFilterDescription,
     const bool aAllowMultipleSelects)
 {
-    static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff;
+    static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     const(char)* p;
 
@@ -2827,7 +2825,7 @@ const(char*) _openFileDialog(
 
 const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
-    static char[MAX_PATH_OR_CMD] lBuff;
+    static char[MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
     const(char)* p;
 
@@ -2874,7 +2872,7 @@ const(char*) _colorChooser(
     ref ubyte[3] aoResultRGB)
 {
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char[8] lDefaultHexRGB;
+    char[8] lDefaultHexRGB = '\0';
     char* lpDefaultHexRGB;
     int i;
     const(char)* p;
@@ -2919,9 +2917,9 @@ const(char*) _colorChooser(
 
 } else { // unix
 
-char[16] gPython2Name;
-char[16] gPython3Name;
-char[16] gPythonName;
+char[16] gPython2Name = '\0';
+char[16] gPython3Name = '\0';
+char[16] gPythonName = '\0';
 
 int isDarwin()
 {
@@ -2947,7 +2945,7 @@ bool dirExists(const char* aDirPath)
 
 bool detectPresence(const char* aExecutable)
 {
-    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
     char[MAX_PATH_OR_CMD] lTestedString = "which ";
 
     strcat(lTestedString.ptr, aExecutable);
@@ -2972,8 +2970,8 @@ bool detectPresence(const char* aExecutable)
 
 const(char)* getVersion(const char* aExecutable) /*version must be first numeral*/
 {
-    static char[MAX_PATH_OR_CMD] lBuff;
-    char[MAX_PATH_OR_CMD] lTestedString;
+    static char[MAX_PATH_OR_CMD] lBuff = '\0';
+    char[MAX_PATH_OR_CMD] lTestedString = '\0';
     FILE *lIn;
     char* lTmp;
 
@@ -3009,7 +3007,7 @@ const(int)* getMajorMinorPatch(const char* aExecutable)
 
 bool tryCommand(const char* aCommand)
 {
-    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
     FILE* lIn = popen(aCommand, "r");
     const bool present = fgets(lBuff.ptr, lBuff.sizeof, lIn) is null;
     pclose(lIn);
@@ -3057,7 +3055,7 @@ bool isDialogVersionBetter09b()
     int lResult;
     char* lMinorP;
     char* lLetter;
-    char[128] lBuff;
+    char[128] lBuff = '\0';
 
     /*char[128] lTest = " 0.9b-20031126" ;*/
 
@@ -3333,7 +3331,7 @@ int notifysendPresent()
 int perlPresent()
 {
     static int ret = -1;
-    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lBuff = 0;
     FILE *lIn;
 
     if (ret < 0)
@@ -3357,7 +3355,7 @@ int perlPresent()
 int afplayPresent()
 {
     static int ret = -1;
-    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
     FILE *lIn;
 
     if (ret < 0)
@@ -3452,7 +3450,7 @@ int zenityPresent()
 int zenity3Present()
 {
     static int ret = -1;
-    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
     FILE *lIn;
     int lIntTmp;
 
@@ -3493,7 +3491,7 @@ int zenity3Present()
 int kdialogPresent()
 {
     static int ret = -1;
-    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
     FILE *lIn;
     char* lDesktop;
 
@@ -3547,7 +3545,7 @@ int kdialogPresent()
 int osx9orBetter()
 {
     static int ret = -1;
-    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
     FILE *lIn;
     int V, v;
 
@@ -3645,7 +3643,7 @@ int python3Present()
 int tkinter2Present()
 {
     static int ret = -1;
-    char[256] lPythonCommand;
+    char[256] lPythonCommand = '\0';
     char[256] lPythonParams =
         "-S -c \"try:\n\timport Tkinter;\nexcept:\n\tprint 0;\"";
 
@@ -3666,7 +3664,7 @@ int tkinter2Present()
 int tkinter3Present()
 {
     static int ret = -1;
-    char[256] lPythonCommand;
+    char[256] lPythonCommand = '\0';
     char[256] lPythonParams =
         "-S -c \"try:\n\timport tkinter;\nexcept:\n\tprint(0);\"";
 
@@ -3687,7 +3685,7 @@ int tkinter3Present()
 int pythonDbusPresent()
 {
     static int ret = -1;
-    char[256] lPythonCommand;
+    char[256] lPythonCommand = '\0';
     char[256] lPythonParams =
 `-c "try:
     import dbus
@@ -3733,7 +3731,7 @@ void sigHandler(int sig)
 
 void _beep()
 {
-    char[256] str_buf;
+    char[256] str_buf = '\0';
     char* str = str_buf.ptr;
     FILE *lIn;
 
@@ -3790,9 +3788,9 @@ int _messageBox(
     const char* aIconType,
     int aDefaultButton)
 {
-    char[MAX_PATH_OR_CMD] lBuff;
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char* str = null;
+    char* str;
     char* lpDialogString;
     FILE *lIn;
     bool lWasGraphicDialog;
@@ -4847,8 +4845,8 @@ int _notifyPopup(
     const char* aMessage,
     const char* aIconType)
 {
-    char[MAX_PATH_OR_CMD] lBuff;
-    char* str = null;
+    char[MAX_PATH_OR_CMD] lBuff = '\0';
+    char* str;
     char* lpDialogString;
     FILE *lIn;
     size_t lTitleLen;
@@ -5086,9 +5084,9 @@ const(char*) _inputBox(
     const char* aMessage,
     const char* aDefaultInput)
 {
-    static char[MAX_PATH_OR_CMD] lBuff;
+    static char[MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char* str = null;
+    char* str;
     char* lpDialogString;
     FILE *lIn;
     int lResult;
@@ -5709,10 +5707,10 @@ const(char*) _saveFileDialog(
     const char** aFilterPatterns,
     const char* aSingleFilterDescription)
 {
-    static char[MAX_PATH_OR_CMD] lBuff;
+    static char[MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char[MAX_PATH_OR_CMD] str_buf1;
-    char[MAX_PATH_OR_CMD] str_buf2;
+    char[MAX_PATH_OR_CMD] str_buf1 = '\0';
+    char[MAX_PATH_OR_CMD] str_buf2 = '\0';
     char* str = str_buf1.ptr;
     char* lString = str_buf2.ptr;
     int i;
@@ -6171,10 +6169,10 @@ const(char*) _openFileDialog(
     const char* aSingleFilterDescription,
     const bool aAllowMultipleSelects)
 {
-    static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff;
+    static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char[MAX_PATH_OR_CMD] str_buf1;
-    char[MAX_PATH_OR_CMD] str_buf2;
+    char[MAX_PATH_OR_CMD] str_buf1 = '\0';
+    char[MAX_PATH_OR_CMD] str_buf2 = '\0';
     char* str = str_buf1.ptr;
     char* lString = str_buf2.ptr;
     int i;
@@ -6704,9 +6702,9 @@ else:
 
 const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
-    static char[MAX_PATH_OR_CMD] lBuff;
+    static char[MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char[MAX_PATH_OR_CMD] str_buf;
+    char[MAX_PATH_OR_CMD] str_buf = '\0';
     char* str = str_buf.ptr;
     FILE *lIn;
     const(char)* p;
@@ -7027,13 +7025,13 @@ const(char*) _colorChooser(
     ref const ubyte[3] aDefaultRGB,
     ref ubyte[3] aoResultRGB)
 {
-    static char[128] lBuff;
+    static char[128] lBuff = '\0';
     const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
-    char[128] tmp_buf;
-    char[MAX_PATH_OR_CMD] str_buf;
+    char[128] tmp_buf = '\0';
+    char[MAX_PATH_OR_CMD] str_buf = '\0';
     char* lTmp = tmp_buf.ptr;
     char* str = str_buf.ptr;
-    char[8] lDefaultHexRGB;
+    char[8] lDefaultHexRGB = '\0';
     char* lpDefaultHexRGB;
     ubyte[3] lDefaultRGB;
     const(char)* p;
