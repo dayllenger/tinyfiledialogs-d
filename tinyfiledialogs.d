@@ -4,7 +4,8 @@
  | dialogs | Copyright (c) 2014-2019 Guillaume Vareille
  \____  ___/ Copyright (c) 2019 dayllenger
       \|
-
+*/
+/**
 Native dialog library for Windows, macOS, GTK+, Qt, console & more.
 SSH supported via automatic switch to console mode or X11 forwarding.
 
@@ -35,7 +36,8 @@ Unix (using command line calls):
 - basic console input
 The same executable can run across desktops & distributions.
 
-*** Notes ***
+Notes
+=====
 
 - Avoid using " and ' in titles and messages.
 - String memory is preallocated statically for all the returned values.
@@ -77,8 +79,9 @@ The same executable can run across desktops & distributions.
 Thanks for contributions, bug corrections & thorough testing to:
 - Don Heyse http://ldglite.sf.net for bug corrections & thorough testing!
 - Paul Rouget
-
-*** License ***
+*/
+/*
+zlib License
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
@@ -172,7 +175,7 @@ int tinyfd_messageBox(
     c_str passwd = tinyfd_inputBox("a password box",
         "your password will be revealed", null);
     if (passwd)
-        printf("your password is: %s\ n", passwd);
+        printf("your password is: %s\n", passwd);
     ---
 */
 c_str tinyfd_inputBox(c_str title, c_str message, c_str defaultInput)
@@ -225,7 +228,7 @@ c_str tinyfd_saveFileDialog(
 
     Example:
     ---
-    const c_str[] patterns = ["*.cpp *.cc *.C *.cxx *.c++"];
+    const c_str[] patterns = ["*.cpp", "*.cc", "*.C", "*.cxx", "*.c++"];
     c_str filename = tinyfd_openFileDialog(
         "Open a C++ File", null,
         cast(int)patterns.length, patterns.ptr,
@@ -334,10 +337,10 @@ or existing console for basic input`;
 
 /// On unix, prints the command line calls; default is `false`
 bool tinyfd_verbose;
-/// On unix, hide errors and warnings from called dialog; default is `true
+/// On unix, hide errors and warnings from called dialog; default is `true`
 bool tinyfd_silent = true;
 
-/** For unix & windows: 0 (graphic mode, default) or 1 (console mode).
+/** For unix & windows: `false` (graphic mode, default) or `true` (console mode).
 
     `false` - try to use a graphic solution, if it fails then it uses console mode.
     `true` - forces all dialogs into console mode even when an X server is present,
@@ -358,10 +361,10 @@ else
     the dialogs but will return 0 for console mode, 1 for graphic mode.
     `tinyfd_response` is then filled with the retain solution.
     possible values for `tinyfd_response` are (all lowercase),
-    for graphic mode: `windows
-        applescript kdialog zenity zenity3 matedialog qarma
-        python2-tkinter python3-tkinter python-dbus perl-dbus
-        gxmessage gmessage xmessage xdialog gdialog`,
+    for graphic mode: `windows`
+        `applescript kdialog zenity zenity3 matedialog qarma`
+        `python2-tkinter python3-tkinter python-dbus perl-dbus`
+        `gxmessage gmessage xmessage xdialog gdialog`,
     for console mode: `dialog whiptail basicinput no_solution`
 
     Example:
@@ -373,13 +376,13 @@ else
 
     strcpy(buf.ptr, "v");
     strcat(buf.ptr, tinyfd_version.ptr);
-    strcat(buf.ptr, "\ n");
+    strcat(buf.ptr, "\n");
     if (mode)
         strcat(buf.ptr, "graphic mode: ");
     else
         strcat(buf.ptr, "console mode: ");
     strcat(buf.ptr, tinyfd_response.ptr);
-    strcat(buf.ptr, "\ n");
+    strcat(buf.ptr, "\n");
     strcat(buf.ptr, tinyfd_needs.ptr + 78);
     tinyfd_messageBox("Hello", buf.ptr, "ok", "info", 0);
     ---
