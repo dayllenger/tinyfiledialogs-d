@@ -1,5 +1,5 @@
 name "tinyfiledialogs"
-description "Single-file library for cross-platform native dialogs."
+description "Cross-platform single-file library for native dialogs."
 authors "Guillaume Vareille" "dayllenger"
 license "Zlib"
 
