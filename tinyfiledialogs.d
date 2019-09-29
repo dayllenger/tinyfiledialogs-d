@@ -354,7 +354,7 @@ else
     the dialogs but will return 0 for console mode, 1 for graphic mode.
     `tinyfd_response` is then filled with the retain solution.
     possible values for `tinyfd_response` are (all lowercase),
-    for graphic mode: `windows_wchar windows
+    for graphic mode: `windows
         applescript kdialog zenity zenity3 matedialog qarma
         python2-tkinter python3-tkinter python-dbus perl-dbus
         gxmessage gmessage xmessage xdialog gdialog`,
@@ -881,37 +881,6 @@ wchar* getLastNameW(
     return aoDestination;
 }
 
-void Hex2RGBW(const wchar* aHexRGB, ref ubyte[3] aoResultRGB)
-{
-    wchar[8] lColorChannel = '\0';
-    if (aHexRGB)
-    {
-        wcscpy(lColorChannel.ptr, aHexRGB);
-        aoResultRGB[2] = cast(ubyte)wcstoul(lColorChannel.ptr + 5, null, 16);
-        lColorChannel[5] = '\0';
-        aoResultRGB[1] = cast(ubyte)wcstoul(lColorChannel.ptr + 3, null, 16);
-        lColorChannel[3] = '\0';
-        aoResultRGB[0] = cast(ubyte)wcstoul(lColorChannel.ptr + 1, null, 16);
-        /* printf("%d %d %d\n", aoResultRGB[0], aoResultRGB[1], aoResultRGB[2]); */
-    }
-    else
-    {
-        aoResultRGB[0] = 0;
-        aoResultRGB[1] = 0;
-        aoResultRGB[2] = 0;
-    }
-}
-
-void RGB2HexW(const ubyte[3] aRGB, wchar* aoResultHexRGB)
-{
-    if (aoResultHexRGB)
-    {
-        /* wprintf("aoResultHexRGB %s\n", aoResultHexRGB); */
-        // NOTE: here was compiler ifdef
-        // swprintf(aoResultHexRGB, 8, "#%02hhx%02hhx%02hhx", aRGB[0], aRGB[1], aRGB[2]);
-    }
-}
-
 static if (!is(WC_ERR_INVALID_CHARS))
 /* undefined prior to Vista, so not yet in MINGW header file */
 enum DWORD WC_ERR_INVALID_CHARS = 0x00000080;
@@ -928,34 +897,38 @@ int sizeUtf8(const wchar* aUtf16string)
                                aUtf16string, -1, null, 0, null, null);
 }
 
-wchar* utf8to16(const char* aUtf8string)
+wchar* utf8to16(const char* str)
 {
-    wchar* lUtf16string;
-    int lSize = sizeUtf16(aUtf8string);
-    lUtf16string = cast(wchar*)malloc(lSize * wchar.sizeof);
+    if (!some(str))
+        return null;
+
+    int lSize = sizeUtf16(str);
+    wchar* ret = cast(wchar*)malloc(lSize * wchar.sizeof);
     lSize = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-                                aUtf8string, -1, lUtf16string, lSize);
+                                str, -1, ret, lSize);
     if (lSize == 0)
     {
-        free(lUtf16string);
+        free(ret);
         return null;
     }
-    return lUtf16string;
+    return ret;
 }
 
-char* utf16to8(const wchar* aUtf16string)
+char* utf16to8(const wchar* str)
 {
-    char* lUtf8string;
-    int lSize = sizeUtf8(aUtf16string);
-    lUtf8string = cast(char*)malloc(lSize);
+    if (!wsome(str))
+        return null;
+
+    int lSize = sizeUtf8(str);
+    char* ret = cast(char*)malloc(lSize);
     lSize = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
-                                aUtf16string, -1, lUtf8string, lSize, null, null);
+                                str, -1, ret, lSize, null, null);
     if (lSize == 0)
     {
-        free(lUtf8string);
+        free(ret);
         return null;
     }
-    return lUtf8string;
+    return ret;
 }
 
 bool dirExists(const char* aDirPath)
@@ -1036,31 +1009,27 @@ void hiddenConsoleW(const wchar* aString, const wchar* aDialogTitle, const int a
     CloseHandle(ProcessInfo.hProcess);
 }
 
-int _messageBoxW(
-    const wchar* aTitle,
-    const wchar* aMessage,
-    const wchar* aDialogType,
-    const wchar* aIconType,
+int messageBoxWinGui(
+    const char* aTitle,
+    const char* aMessage,
+    const char* aDialogType,
+    const char* aIconType,
     const int aDefaultButton)
 {
-    int lBoxReturnValue;
+    wchar* lTitle = utf8to16(aTitle);
+    wchar* lMessage = utf8to16(aMessage);
+
     UINT aCode;
 
-    if (aTitle && !wcscmp(aTitle, "tinyfd_query"))
-    {
-        response("windows_wchar");
-        return 1;
-    }
-
-    if (aIconType && !wcscmp("warning", aIconType))
+    if (eq("warning", aIconType))
     {
         aCode = MB_ICONWARNING;
     }
-    else if (aIconType && !wcscmp("error", aIconType))
+    else if (eq("error", aIconType))
     {
         aCode = MB_ICONERROR;
     }
-    else if (aIconType && !wcscmp("question", aIconType))
+    else if (eq("question", aIconType))
     {
         aCode = MB_ICONQUESTION;
     }
@@ -1069,7 +1038,7 @@ int _messageBoxW(
         aCode = MB_ICONINFORMATION;
     }
 
-    if (aDialogType && !wcscmp("okcancel", aDialogType))
+    if (eq("okcancel", aDialogType))
     {
         aCode += MB_OKCANCEL;
         if (!aDefaultButton)
@@ -1077,7 +1046,7 @@ int _messageBoxW(
             aCode += MB_DEFBUTTON2;
         }
     }
-    else if (aDialogType && !wcscmp("yesno", aDialogType))
+    else if (eq("yesno", aDialogType))
     {
         aCode += MB_YESNO;
         if (!aDefaultButton)
@@ -1092,66 +1061,29 @@ int _messageBoxW(
 
     aCode += MB_TOPMOST;
 
-    lBoxReturnValue = MessageBoxW(GetForegroundWindow(), aMessage, aTitle, aCode);
-    if (((aDialogType && wcscmp("okcancel", aDialogType) && wcscmp("yesno", aDialogType))) || (lBoxReturnValue == IDOK) || (lBoxReturnValue == IDYES))
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-int messageBoxWinGui8(
-    const char* aTitle,
-    const char* aMessage,
-    const char* aDialogType,
-    const char* aIconType,
-    const int aDefaultButton)
-{
-    int lIntRetVal;
-    wchar* lTitle;
-    wchar* lMessage;
-    wchar* lDialogType;
-    wchar* lIconType;
-
-    lTitle = utf8to16(aTitle);
-    lMessage = utf8to16(aMessage);
-    lDialogType = utf8to16(aDialogType);
-    lIconType = utf8to16(aIconType);
-
-    lIntRetVal = _messageBoxW(lTitle, lMessage,
-                              lDialogType, lIconType, aDefaultButton);
-
+    int lBoxReturnValue = MessageBoxW(GetForegroundWindow(), lMessage, lTitle, aCode);
     free(lTitle);
     free(lMessage);
-    free(lDialogType);
-    free(lIconType);
 
-    return lIntRetVal;
+    if (eq("ok", aDialogType) || lBoxReturnValue == IDOK || lBoxReturnValue == IDYES)
+        return 1;
+    else
+        return 0;
 }
 
-int _notifyPopupW(
-    const wchar* aTitle,
-    const wchar* aMessage,
-    const wchar* aIconType)
+int notifyWinGui(
+    const char* aTitle,
+    const char* aMessage,
+    const char* aIconType)
 {
-    wchar* str;
-    size_t lTitleLen;
-    size_t lMessageLen;
-    size_t lDialogStringLen;
+    wchar* lTitle = utf8to16(aTitle);
+    wchar* lMessage = utf8to16(aMessage);
+    wchar* lIconType = utf8to16(aIconType);
 
-    if (aTitle && !wcscmp(aTitle, "tinyfd_query"))
-    {
-        response("windows_wchar");
-        return 1;
-    }
-
-    lTitleLen = aTitle ? wcslen(aTitle) : 0;
-    lMessageLen = aMessage ? wcslen(aMessage) : 0;
-    lDialogStringLen = 3 * MAX_PATH_OR_CMD + lTitleLen + lMessageLen;
-    str = cast(wchar*)malloc(2 * lDialogStringLen);
+    size_t lTitleLen = lTitle ? wcslen(lTitle) : 0;
+    size_t lMessageLen = lMessage ? wcslen(lMessage) : 0;
+    size_t lDialogStringLen = 3 * MAX_PATH_OR_CMD + lTitleLen + lMessageLen;
+    wchar* str = cast(wchar*)malloc(lDialogStringLen * wchar.sizeof);
 
     wcscpy(str, "powershell.exe -command \"" ~
 "function Show-BalloonTip {" ~
@@ -1176,48 +1108,31 @@ int _notifyPopupW(
 "$balloon.ShowBalloonTip(5000)};" ~
 "Show-BalloonTip");
 
-    if (wsome(aTitle))
+    if (wsome(lTitle))
     {
         wcscat(str, " -Title '");
-        wcscat(str, aTitle);
+        wcscat(str, lTitle);
         wcscat(str, "'");
     }
-    if (wsome(aMessage))
+    if (wsome(lMessage))
     {
         wcscat(str, " -Message '");
-        wcscat(str, aMessage);
+        wcscat(str, lMessage);
         wcscat(str, "'");
     }
-    if (wsome(aIconType))
+    if (wsome(lIconType))
     {
         wcscat(str, " -IconType '");
-        wcscat(str, aIconType);
+        wcscat(str, lIconType);
         wcscat(str, "'");
     }
     wcscat(str, "\"");
 
     /* wprintf ( "str: %ls\n" , str ) ; */
 
-    hiddenConsoleW(str, aTitle, 0);
+    hiddenConsoleW(str, lTitle, 0);
+
     free(str);
-    return 1;
-}
-
-int notifyWinGui(
-    const char* aTitle,   /* null or "" */
-    const char* aMessage, /* null or "" may NOT contain \n nor \t */
-    const char* aIconType)
-{
-    wchar* lTitle;
-    wchar* lMessage;
-    wchar* lIconType;
-
-    lTitle = utf8to16(aTitle);
-    lMessage = utf8to16(aMessage);
-    lIconType = utf8to16(aIconType);
-
-    _notifyPopupW(lTitle, lMessage, lIconType);
-
     free(lTitle);
     free(lMessage);
     free(lIconType);
@@ -1230,30 +1145,17 @@ const(wchar)* _inputBoxW(
     const wchar* aDefaultInput)
 {
     static wchar[MAX_PATH_OR_CMD] lBuff = '\0';
-    wchar* str;
-    FILE* lIn;
-    FILE* lFile;
-    int lResult;
-    size_t lTitleLen;
-    size_t lMessageLen;
-    size_t lDialogStringLen;
 
-    if (aTitle && !wcscmp(aTitle, "tinyfd_query"))
-    {
-        response("windows_wchar");
-        return cast(const(wchar)*)1;
-    }
-
-    lTitleLen = aTitle ? wcslen(aTitle) : 0;
-    lMessageLen = aMessage ? wcslen(aMessage) : 0;
-    lDialogStringLen = 3 * MAX_PATH_OR_CMD + lTitleLen + lMessageLen;
-    str = cast(wchar*)malloc(2 * lDialogStringLen);
+    size_t lTitleLen = aTitle ? wcslen(aTitle) : 0;
+    size_t lMessageLen = aMessage ? wcslen(aMessage) : 0;
+    size_t lDialogStringLen = 3 * MAX_PATH_OR_CMD + lTitleLen + lMessageLen;
+    wchar* str = cast(wchar*)malloc(lDialogStringLen * wchar.sizeof);
 
     wcscpy(str, _wgetenv("USERPROFILE"));
     wcscat(str, "\\AppData\\Local\\Temp\\tinyfd.");
     wcscat(str, aDefaultInput ? "vbs" : "hta");
 
-    lIn = _wfopen(str, "w");
+    FILE* lIn = _wfopen(str, "w");
     if (!lIn)
     {
         free(str);
@@ -1388,11 +1290,11 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>
         wcscat(str, "\\AppData\\Local\\Temp\\tinyfd.txt");
 
 version (TINYFD_NOCCSUNICODE) {
-        lFile = _wfopen(str, "w");
+        FILE* lFile = _wfopen(str, "w");
         fputc(0xFF, lFile);
         fputc(0xFE, lFile);
 } else {
-        lFile = _wfopen(str, "wt, ccs=UNICODE");  /*or ccs=UTF-16LE*/
+        FILE* lFile = _wfopen(str, "wt, ccs=UNICODE");  /*or ccs=UTF-16LE*/
 }
         fclose(lFile);
 
@@ -1442,16 +1344,14 @@ version (TINYFD_NOCCSUNICODE) {
     free(str);
     /* wprintf( "lBuff: %ls\n" , lBuff ) ; */
 version (TINYFD_NOCCSUNICODE) {
-    lResult = !wcsncmp(lBuff.ptr + 1, "1", 1);
+    int lResult = !wcsncmp(lBuff.ptr + 1, "1", 1);
 } else {
-    lResult = !wcsncmp(lBuff.ptr, "1", 1);
+    int lResult = !wcsncmp(lBuff.ptr, "1", 1);
 }
 
     /* printf( "lResult: %d \n" , lResult ) ; */
     if (!lResult)
-    {
         return null;
-    }
 
     /* wprintf( "lBuff+1: %ls\n" , lBuff+1 ) ; */
 
@@ -1484,28 +1384,20 @@ const(char)* inputBoxWinGui(
     const char* aMessage,
     const char* aDefaultInput)
 {
-    wchar* lTitle;
-    wchar* lMessage;
-    wchar* lDefaultInput;
-    const(wchar)* lTmpWChar;
-    char* lTmpChar;
+    wchar* lTitle = utf8to16(aTitle);
+    wchar* lMessage = utf8to16(aMessage);
+    wchar* lDefaultInput = utf8to16(aDefaultInput);
 
-    lTitle = utf8to16(aTitle);
-    lMessage = utf8to16(aMessage);
-    lDefaultInput = utf8to16(aDefaultInput);
-
-    lTmpWChar = _inputBoxW(lTitle, lMessage, lDefaultInput);
+    const(wchar)* lTmpWChar = _inputBoxW(lTitle, lMessage, lDefaultInput);
 
     free(lTitle);
     free(lMessage);
     free(lDefaultInput);
 
     if (!lTmpWChar)
-    {
         return null;
-    }
 
-    lTmpChar = utf16to8(lTmpWChar);
+    char* lTmpChar = utf16to8(lTmpWChar);
     strcpy(aoBuff, lTmpChar);
     free(lTmpChar);
 
@@ -1524,18 +1416,8 @@ const(wchar)* _saveFileDialogW(
     wchar[MAX_PATH_OR_CMD] str = '\0';
     wchar[MAX_PATH_OR_CMD] lFilterPatterns_buf = '\0';
     wchar* lFilterPatterns = lFilterPatterns_buf.ptr;
-    wchar* p;
-    wchar* lRetval;
-    HRESULT lHResult;
-    OPENFILENAMEW ofn = {0};
 
-    if (aTitle && !wcscmp(aTitle, "tinyfd_query"))
-    {
-        response("windows_wchar");
-        return cast(const(wchar)*)1;
-    }
-
-    lHResult = CoInitializeEx(null, 0);
+    HRESULT lHResult = CoInitializeEx(null, 0);
 
     getPathWithoutFinalSlashW(lDirname.ptr, aDefaultPathAndFile);
     getLastNameW(lBuff.ptr, aDefaultPathAndFile);
@@ -1560,7 +1442,7 @@ const(wchar)* _saveFileDialogW(
             wcscat(lFilterPatterns, str.ptr);
         }
         wcscat(lFilterPatterns, "All Files\n*.*\n");
-        p = lFilterPatterns;
+        wchar* p = lFilterPatterns;
         while ((p = wcschr(p, '\n')) !is null)
         {
             *p = '\0';
@@ -1568,6 +1450,7 @@ const(wchar)* _saveFileDialogW(
         }
     }
 
+    OPENFILENAMEW ofn = {0};
     ofn.lStructSize = OPENFILENAMEW.sizeof;
     ofn.hwndOwner = GetForegroundWindow();
     ofn.hInstance = null;
@@ -1590,6 +1473,7 @@ const(wchar)* _saveFileDialogW(
     ofn.lpfnHook = null;
     ofn.lpTemplateName = null;
 
+    wchar* lRetval;
     if (GetSaveFileNameW(&ofn) == 0)
     {
         lRetval = null;
@@ -1606,7 +1490,7 @@ const(wchar)* _saveFileDialogW(
     return lRetval;
 }
 
-const(char)* saveFileDialogWinGui8(
+const(char)* saveFileDialogWinGui(
     char* aoBuff,
     const char* aTitle,
     const char* aDefaultPathAndFile,
@@ -1614,24 +1498,17 @@ const(char)* saveFileDialogWinGui8(
     const char** aFilterPatterns,
     const char* aSingleFilterDescription)
 {
-    wchar* lTitle;
-    wchar* lDefaultPathAndFile;
-    wchar* lSingleFilterDescription;
-    wchar** lFilterPatterns;
-    const(wchar)* lTmpWChar;
-    char* lTmpChar;
-
-    lFilterPatterns = cast(wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
+    wchar** lFilterPatterns = cast(wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
     foreach (i; 0 .. aNumOfFilterPatterns)
     {
         lFilterPatterns[i] = utf8to16(aFilterPatterns[i]);
     }
 
-    lTitle = utf8to16(aTitle);
-    lDefaultPathAndFile = utf8to16(aDefaultPathAndFile);
-    lSingleFilterDescription = utf8to16(aSingleFilterDescription);
+    wchar* lTitle = utf8to16(aTitle);
+    wchar* lDefaultPathAndFile = utf8to16(aDefaultPathAndFile);
+    wchar* lSingleFilterDescription = utf8to16(aSingleFilterDescription);
 
-    lTmpWChar = _saveFileDialogW(
+    const(wchar)* lTmpWChar = _saveFileDialogW(
         lTitle,
         lDefaultPathAndFile,
         aNumOfFilterPatterns,
@@ -1648,11 +1525,9 @@ const(char)* saveFileDialogWinGui8(
     free(lFilterPatterns);
 
     if (!lTmpWChar)
-    {
         return null;
-    }
 
-    lTmpChar = utf16to8(lTmpWChar);
+    char* lTmpChar = utf16to8(lTmpWChar);
     strcpy(aoBuff, lTmpChar);
     free(lTmpChar);
 
@@ -1669,24 +1544,12 @@ const(wchar)* _openFileDialogW(
 {
     static wchar[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
 
-    size_t[MAX_MULTIPLE_FILES] lLengths;
     wchar[MAX_PATH_OR_CMD] lDirname = '\0';
     wchar[MAX_PATH_OR_CMD] str = '\0';
     wchar[MAX_PATH_OR_CMD] lFilterPatterns_buf = '\0';
     wchar* lFilterPatterns = lFilterPatterns_buf.ptr;
-    wchar*[MAX_MULTIPLE_FILES] lPointers;
-    wchar* lRetval, p;
-    size_t lBuffLen;
-    HRESULT lHResult;
-    OPENFILENAMEW ofn = {0};
 
-    if (aTitle && !wcscmp(aTitle, "tinyfd_query"))
-    {
-        response("windows_wchar");
-        return cast(const(wchar)*)1;
-    }
-
-    lHResult = CoInitializeEx(null, 0);
+    HRESULT lHResult = CoInitializeEx(null, 0);
 
     getPathWithoutFinalSlashW(lDirname.ptr, aDefaultPathAndFile);
     getLastNameW(lBuff.ptr, aDefaultPathAndFile);
@@ -1711,7 +1574,7 @@ const(wchar)* _openFileDialogW(
             wcscat(lFilterPatterns, str.ptr);
         }
         wcscat(lFilterPatterns, "All Files\n*.*\n");
-        p = lFilterPatterns;
+        wchar* p = lFilterPatterns;
         while ((p = wcschr(p, '\n')) !is null)
         {
             *p = '\0';
@@ -1719,6 +1582,7 @@ const(wchar)* _openFileDialogW(
         }
     }
 
+    OPENFILENAMEW ofn = {0};
     ofn.lStructSize = OPENFILENAME.sizeof;
     ofn.hwndOwner = GetForegroundWindow();
     ofn.hInstance = null;
@@ -1745,13 +1609,16 @@ const(wchar)* _openFileDialogW(
         ofn.Flags |= OFN_ALLOWMULTISELECT;
     }
 
+    size_t[MAX_MULTIPLE_FILES] lLengths;
+    wchar*[MAX_MULTIPLE_FILES] lPointers;
+    wchar* lRetval, p;
     if (GetOpenFileNameW(&ofn) == 0)
     {
         lRetval = null;
     }
     else
     {
-        lBuffLen = wcslen(lBuff.ptr);
+        size_t lBuffLen = wcslen(lBuff.ptr);
         lPointers[0] = lBuff.ptr + lBuffLen + 1;
         if (!aAllowMultipleSelects || (lPointers[0][0] == '\0'))
         {
@@ -1792,7 +1659,7 @@ const(wchar)* _openFileDialogW(
     return lRetval;
 }
 
-const(char)* openFileDialogWinGui8(
+const(char)* openFileDialogWinGui(
     char* aoBuff,
     const char* aTitle,
     const char* aDefaultPathAndFile,
@@ -1801,24 +1668,17 @@ const(char)* openFileDialogWinGui8(
     const char* aSingleFilterDescription,
     const bool aAllowMultipleSelects)
 {
-    wchar* lTitle;
-    wchar* lDefaultPathAndFile;
-    wchar* lSingleFilterDescription;
-    wchar** lFilterPatterns;
-    const(wchar)* lTmpWChar;
-    char* lTmpChar;
-
-    lFilterPatterns = cast(wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
+    wchar** lFilterPatterns = cast(wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
     foreach (i; 0 .. aNumOfFilterPatterns)
     {
         lFilterPatterns[i] = utf8to16(aFilterPatterns[i]);
     }
 
-    lTitle = utf8to16(aTitle);
-    lDefaultPathAndFile = utf8to16(aDefaultPathAndFile);
-    lSingleFilterDescription = utf8to16(aSingleFilterDescription);
+    wchar* lTitle = utf8to16(aTitle);
+    wchar* lDefaultPathAndFile = utf8to16(aDefaultPathAndFile);
+    wchar* lSingleFilterDescription = utf8to16(aSingleFilterDescription);
 
-    lTmpWChar = _openFileDialogW(
+    const(wchar)* lTmpWChar = _openFileDialogW(
         lTitle,
         lDefaultPathAndFile,
         aNumOfFilterPatterns,
@@ -1836,11 +1696,9 @@ const(char)* openFileDialogWinGui8(
     free(lFilterPatterns);
 
     if (!lTmpWChar)
-    {
         return null;
-    }
 
-    lTmpChar = utf16to8(lTmpWChar);
+    char* lTmpChar = utf16to8(lTmpWChar);
     strcpy(aoBuff, lTmpChar);
     free(lTmpChar);
 
@@ -1858,35 +1716,32 @@ extern (Windows) int BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM
     return 0;
 }
 
-const(wchar)* tinyfd_selectFolderDialogW(const wchar* aTitle, const wchar* aDefaultPath)
+const(char)* selectFolderDialogWinGui(
+    char* aoBuff,
+    const char* aTitle,
+    const char* aDefaultPath)
 {
     static wchar[MAX_PATH_OR_CMD] lBuff = '\0';
 
+    wchar* lTitle = utf8to16(aTitle);
+    wchar* lDefaultPath = utf8to16(aDefaultPath);
+
+    HRESULT lHResult = CoInitializeEx(null, COINIT_APARTMENTTHREADED);
+
     BROWSEINFOW bInfo;
-    LPITEMIDLIST lpItem;
-    HRESULT lHResult;
-
-    if (aTitle && !wcscmp(aTitle, "tinyfd_query"))
-    {
-        response("windows_wchar");
-        return cast(const(wchar)*)1;
-    }
-
-    lHResult = CoInitializeEx(null, COINIT_APARTMENTTHREADED);
-
     bInfo.hwndOwner = GetForegroundWindow();
     bInfo.pidlRoot = null;
     bInfo.pszDisplayName = lBuff.ptr;
-    bInfo.lpszTitle = wsome(aTitle) ? aTitle : null;
+    bInfo.lpszTitle = wsome(lTitle) ? lTitle : null;
     if (lHResult == S_OK || lHResult == S_FALSE)
     {
         bInfo.ulFlags = BIF_USENEWUI;
     }
     bInfo.lpfn = &BrowseCallbackProcW;
-    bInfo.lParam = cast(LPARAM)aDefaultPath;
+    bInfo.lParam = cast(LPARAM)lDefaultPath;
     bInfo.iImage = -1;
 
-    lpItem = SHBrowseForFolderW(&bInfo);
+    LPITEMIDLIST lpItem = SHBrowseForFolderW(&bInfo);
     if (lpItem)
     {
         SHGetPathFromIDListW(lpItem, lBuff.ptr);
@@ -1896,75 +1751,38 @@ const(wchar)* tinyfd_selectFolderDialogW(const wchar* aTitle, const wchar* aDefa
     {
         CoUninitialize();
     }
-    return lBuff.ptr;
-}
 
-const(char)* selectFolderDialogWinGui8(
-    char* aoBuff,
-    const char* aTitle,
-    const char* aDefaultPath)
-{
-    wchar* lTitle;
-    wchar* lDefaultPath;
-    const(wchar)* lTmpWChar;
-    char* lTmpChar;
-
-    lTitle = utf8to16(aTitle);
-    lDefaultPath = utf8to16(aDefaultPath);
-
-    lTmpWChar = tinyfd_selectFolderDialogW(
-        lTitle,
-        lDefaultPath);
-
+    char* lTmpChar = utf16to8(lBuff.ptr);
+    if (lTmpChar)
+    {
+        strcpy(aoBuff, lTmpChar);
+        free(lTmpChar);
+    }
     free(lTitle);
     free(lDefaultPath);
-    if (!lTmpWChar)
-    {
-        return null;
-    }
-
-    lTmpChar = utf16to8(lTmpWChar);
-    strcpy(aoBuff, lTmpChar);
-    free(lTmpChar);
-
     return aoBuff;
 }
 
 } // TINYFD_SELECTFOLDERWIN
 
-const(wchar)* _colorChooserW(
-    const wchar* aTitle,
-    const wchar* aDefaultHexRGB,
+const(char)* colorChooserWinGui(
+    const char* aTitle,
+    const char* aDefaultHexRGB,
     ref const ubyte[3] aDefaultRGB,
     ref ubyte[3] aoResultRGB)
 {
-    static wchar[8] lResultHexRGB = '\0';
-    CHOOSECOLORW cc;
-    COLORREF[16] crCustColors;
-    ubyte[3] lDefaultRGB;
-    int lRet;
+    static char[8] lResultHexRGB = '\0';
+    ubyte[3] lDefaultRGB = aDefaultRGB;
 
-    HRESULT lHResult;
-
-    if (aTitle && !wcscmp(aTitle, "tinyfd_query"))
-    {
-        response("windows_wchar");
-        return cast(const(wchar)*)1;
-    }
-
-    lHResult = CoInitializeEx(null, 0);
+    HRESULT lHResult = CoInitializeEx(null, 0);
 
     if (aDefaultHexRGB)
     {
-        Hex2RGBW(aDefaultHexRGB, lDefaultRGB);
-    }
-    else
-    {
-        lDefaultRGB[0] = aDefaultRGB[0];
-        lDefaultRGB[1] = aDefaultRGB[1];
-        lDefaultRGB[2] = aDefaultRGB[2];
+        Hex2RGB(aDefaultHexRGB, lDefaultRGB);
     }
 
+    CHOOSECOLORW cc;
+    COLORREF[16] crCustColors;
     /* we can't use aTitle */
     cc.lStructSize = CHOOSECOLOR.sizeof;
     cc.hwndOwner = GetForegroundWindow();
@@ -1976,61 +1794,21 @@ const(wchar)* _colorChooserW(
     cc.lpfnHook = null;
     cc.lpTemplateName = null;
 
-    lRet = ChooseColorW(&cc);
-
-    if (!lRet)
+    const(char)* ret;
+    if (ChooseColorW(&cc))
     {
-        return null;
+        aoResultRGB[0] = GetRValue(cc.rgbResult);
+        aoResultRGB[1] = GetGValue(cc.rgbResult);
+        aoResultRGB[2] = GetBValue(cc.rgbResult);
+        RGB2Hex(aoResultRGB, lResultHexRGB.ptr);
+        ret = lResultHexRGB.ptr;
     }
-
-    aoResultRGB[0] = GetRValue(cc.rgbResult);
-    aoResultRGB[1] = GetGValue(cc.rgbResult);
-    aoResultRGB[2] = GetBValue(cc.rgbResult);
-
-    RGB2HexW(aoResultRGB, lResultHexRGB.ptr);
 
     if (lHResult == S_OK || lHResult == S_FALSE)
     {
         CoUninitialize();
     }
-
-    return lResultHexRGB.ptr;
-}
-
-const(char)* colorChooserWinGui8(
-    const char* aTitle,
-    const char* aDefaultHexRGB,
-    ref const ubyte[3] aDefaultRGB,
-    ref ubyte[3] aoResultRGB)
-{
-    static char[8] lResultHexRGB = '\0';
-
-    wchar* lTitle;
-    wchar* lDefaultHexRGB;
-    const(wchar)* lTmpWChar;
-    char* lTmpChar;
-
-    lTitle = utf8to16(aTitle);
-    lDefaultHexRGB = utf8to16(aDefaultHexRGB);
-
-    lTmpWChar = _colorChooserW(
-        lTitle,
-        lDefaultHexRGB,
-        aDefaultRGB,
-        aoResultRGB);
-
-    free(lTitle);
-    free(lDefaultHexRGB);
-    if (!lTmpWChar)
-    {
-        return null;
-    }
-
-    lTmpChar = utf16to8(lTmpWChar);
-    strcpy(lResultHexRGB.ptr, lTmpChar);
-    free(lTmpChar);
-
-    return lResultHexRGB.ptr;
+    return ret;
 }
 
 } // TINYFD_NOLIB
@@ -2269,9 +2047,7 @@ const(char)* inputBoxWinConsole(
     lResult = strncmp(aoBuff, "1", 1) ? 0 : 1;
     /* printf( "lResult: %d \n" , lResult ) ; */
     if (!lResult)
-    {
         return null;
-    }
     /* printf( "aoBuff+1: %s\n" , aoBuff+1 ) ; */
     return aoBuff + 3;
 }
@@ -2337,9 +2113,7 @@ const(char)* saveFileDialogWinConsole(
     /* printf( "aoBuff: %s\n" , aoBuff ) ; */
     getLastName(str, aoBuff);
     if (!some(str))
-    {
         return null;
-    }
     return aoBuff;
 }
 
@@ -2484,7 +2258,7 @@ int _messageBox(
             response("windows");
             return 1;
         }
-        return messageBoxWinGui8(
+        return messageBoxWinGui(
             aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
     }
     else if (dialogPresent())
@@ -2659,9 +2433,8 @@ const(char*) _inputBox(
         }
         lEOF = fgets(lBuff.ptr, lBuff.sizeof, stdin);
         if (!lEOF)
-        {
             return null;
-        }
+
         version (TINYFD_LIB) {
             if (!aDefaultInput)
             {
@@ -2671,9 +2444,7 @@ const(char*) _inputBox(
         }
         printf("\n");
         if (strchr(lBuff.ptr, 27))
-        {
             return null;
-        }
         removeLastNL(lBuff.ptr);
         return lBuff.ptr;
     }
@@ -2699,7 +2470,7 @@ const(char*) _saveFileDialog(
             response("windows");
             return cast(const(char)*)1;
         }
-        p = saveFileDialogWinGui8(lBuff.ptr, aTitle, aDefaultPathAndFile, aNumOfFilterPatterns,
+        p = saveFileDialogWinGui(lBuff.ptr, aTitle, aDefaultPathAndFile, aNumOfFilterPatterns,
                                   aFilterPatterns, aSingleFilterDescription);
     }
     else if (dialogPresent())
@@ -2722,19 +2493,13 @@ const(char*) _saveFileDialog(
     }
 
     if (!some(p))
-    {
         return null;
-    }
     getPathWithoutFinalSlash(lString.ptr, p);
     if (!dirExists(lString.ptr))
-    {
         return null;
-    }
     getLastName(lString.ptr, p);
     if (!filenameValid(lString.ptr))
-    {
         return null;
-    }
     return p;
 }
 
@@ -2757,7 +2522,7 @@ const(char*) _openFileDialog(
             response("windows");
             return cast(const(char)*)1;
         }
-        p = openFileDialogWinGui8(lBuff.ptr,
+        p = openFileDialogWinGui(lBuff.ptr,
                                   aTitle, aDefaultPathAndFile, aNumOfFilterPatterns,
                                   aFilterPatterns, aSingleFilterDescription, aAllowMultipleSelects);
     }
@@ -2782,9 +2547,8 @@ const(char*) _openFileDialog(
     }
 
     if (!some(p))
-    {
         return null;
-    }
+
     if (aAllowMultipleSelects && strchr(p, '|'))
     {
         p = ensureFilesExist(lBuff.ptr, p);
@@ -2811,7 +2575,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
             return cast(const(char)*)1;
         }
         version (TINYFD_SELECTFOLDERWIN)
-            p = selectFolderDialogWinGui8(lBuff.ptr, aTitle, aDefaultPath);
+            p = selectFolderDialogWinGui(lBuff.ptr, aTitle, aDefaultPath);
     }
     else if (dialogPresent())
     {
@@ -2833,9 +2597,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
     }
 
     if (!dirExists(p))
-    {
         return null;
-    }
     return p;
 }
 
@@ -2857,8 +2619,7 @@ const(char*) _colorChooser(
             response("windows");
             return cast(const(char)*)1;
         }
-        return colorChooserWinGui8(
-            aTitle, aDefaultHexRGB, aDefaultRGB, aoResultRGB);
+        return colorChooserWinGui(aTitle, aDefaultHexRGB, aDefaultRGB, aoResultRGB);
     }
     else if (aDefaultHexRGB)
     {
@@ -2873,16 +2634,13 @@ const(char*) _colorChooser(
     if (lQuery)
         return p;
 
-    if (!p || (strlen(p) != 7) || (p[0] != '#'))
-    {
+    if (!p || strlen(p) != 7 || p[0] != '#')
         return null;
-    }
+
     foreach (i; 1 .. 7)
     {
         if (!isxdigit(p[i]))
-        {
             return null;
-        }
     }
     Hex2RGB(p, aoResultRGB);
     return p;
@@ -3188,14 +2946,7 @@ const(char)* terminalName()
                 aterm Terminal terminology sakura lilyterm weston-terminal
                 roxterm termit xvt rxvt mrxvt urxvt */
     }
-    if (some(ret))
-    {
-        return ret;
-    }
-    else
-    {
-        return null;
-    }
+    return some(ret) ? ret : null;
 }
 
 const(char)* dialogName()
@@ -3207,9 +2958,7 @@ const(char)* dialogName()
         return ret;
     }
     else
-    {
         return null;
-    }
 }
 
 int whiptailPresent()
@@ -3221,9 +2970,7 @@ int whiptailPresent()
         return ret;
     }
     else
-    {
         return 0;
-    }
 }
 
 int graphicMode()
@@ -6088,14 +5835,10 @@ const(char*) _saveFileDialog(
         p = _inputBox(aTitle, "Save file", "");
         getPathWithoutFinalSlash(lString, p);
         if (!dirExists(lString))
-        {
             return null;
-        }
         getLastName(lString, p);
         if (!some(lString))
-        {
             return null;
-        }
         return p;
     }
 
@@ -6103,9 +5846,7 @@ const(char*) _saveFileDialog(
         printf("str: %s\n", str);
     lIn = popen(str, "r");
     if (!lIn)
-    {
         return null;
-    }
     while (fgets(lBuff.ptr, lBuff.sizeof, lIn) !is null)
     {
     }
@@ -6113,19 +5854,13 @@ const(char*) _saveFileDialog(
     removeLastNL(lBuff.ptr);
     /* printf( "lBuff: %s\n" , lBuff ) ; */
     if (!some(lBuff.ptr))
-    {
         return null;
-    }
     getPathWithoutFinalSlash(lString, lBuff.ptr);
     if (!dirExists(lString))
-    {
         return null;
-    }
     getLastName(lString, lBuff.ptr);
     if (!filenameValid(lString))
-    {
         return null;
-    }
     return lBuff.ptr;
 }
 
@@ -6614,9 +6349,7 @@ else:
         }
         p2 = _inputBox(aTitle, "Open file", "");
         if (!fileExists(p2))
-        {
             return null;
-        }
         return p2;
     }
 
@@ -6624,9 +6357,8 @@ else:
         printf("str: %s\n", str);
     lIn = popen(str, "r");
     if (!lIn)
-    {
         return null;
-    }
+
     lBuff[0] = '\0';
     p = lBuff.ptr;
     while (fgets(p, lBuff.sizeof, lIn) !is null)
@@ -6647,9 +6379,8 @@ else:
     }
     /* printf( "lBuff2: %s\n" , lBuff ) ; */
     if (!some(lBuff.ptr))
-    {
         return null;
-    }
+
     if (aAllowMultipleSelects && strchr(lBuff.ptr, '|'))
     {
         p2 = ensureFilesExist(lBuff.ptr, lBuff.ptr);
@@ -6659,9 +6390,7 @@ else:
         p2 = lBuff.ptr;
     }
     else
-    {
         return null;
-    }
     /* printf( "lBuff3: %s\n" , p2 ) ; */
 
     return p2;
@@ -6961,18 +6690,15 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
         }
         p = _inputBox(aTitle, "Select folder", "");
         if (!dirExists(p))
-        {
             return null;
-        }
         return p;
     }
     if (tinyfd_verbose)
         printf("str: %s\n", str);
     lIn = popen(str, "r");
     if (!lIn)
-    {
         return null;
-    }
+
     while (fgets(lBuff.ptr, lBuff.sizeof, lIn) !is null)
     {
     }
@@ -6980,9 +6706,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
     removeLastNL(lBuff.ptr);
     /* printf( "lBuff: %s\n" , lBuff ) ; */
     if (!dirExists(lBuff.ptr))
-    {
         return null;
-    }
     return lBuff.ptr;
 }
 
@@ -7234,16 +6958,13 @@ if res[1] is not None:
             return _inputBox(aTitle, null, null);
         }
         p = _inputBox(aTitle, "Enter hex rgb color (i.e. #f5ca20)", lpDefaultHexRGB);
-        if (!p || (strlen(p) != 7) || (p[0] != '#'))
-        {
+        if (!p || strlen(p) != 7 || p[0] != '#')
             return null;
-        }
+
         foreach (i; 1 .. 7)
         {
             if (!isxdigit(p[i]))
-            {
                 return null;
-            }
         }
         Hex2RGB(p, aoResultRGB);
         return p;
@@ -7253,17 +6974,14 @@ if res[1] is not None:
         printf("str: %s\n", str);
     lIn = popen(str, "r");
     if (!lIn)
-    {
         return null;
-    }
+
     while (fgets(lBuff.ptr, lBuff.sizeof, lIn) !is null)
     {
     }
     pclose(lIn);
     if (!some(lBuff.ptr))
-    {
         return null;
-    }
     /* printf( "len Buff: %lu\n" , strlen(lBuff.ptr) ) ; */
     /* printf( "lBuff0: %s\n" , lBuff ) ; */
     removeLastNL(lBuff.ptr);
