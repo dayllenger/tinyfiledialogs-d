@@ -478,6 +478,15 @@ bool wsome(const wchar* str)
     return str && str[0] != '\0';
 }
 
+bool eq(const char* s1, const char* s2)
+{
+    if (s1 is s2)
+        return true;
+    if (s1 is null || s2 is null)
+        return false;
+    return strcmp(s1, s2) == 0;
+}
+
 char lastch(const char* str)
 {
     if (str)
@@ -2079,14 +2088,14 @@ int messageBoxWinConsole(
         strcat(str, "\" ");
     }
 
-    if (aDialogType && (!strcmp("okcancel", aDialogType) || !strcmp("yesno", aDialogType) || !strcmp("yesnocancel", aDialogType)))
+    if (eq("okcancel", aDialogType) || eq("yesno", aDialogType) || eq("yesnocancel", aDialogType))
     {
         strcat(str, "--backtitle \"");
         strcat(str, "tab: move focus");
         strcat(str, "\" ");
     }
 
-    if (aDialogType && !strcmp("okcancel", aDialogType))
+    if (eq("okcancel", aDialogType))
     {
         if (!aDefaultButton)
         {
@@ -2095,7 +2104,7 @@ int messageBoxWinConsole(
         strcat(str,
                "--yes-label \"Ok\" --no-label \"Cancel\" --yesno ");
     }
-    else if (aDialogType && !strcmp("yesno", aDialogType))
+    else if (eq("yesno", aDialogType))
     {
         if (!aDefaultButton)
         {
@@ -2103,7 +2112,7 @@ int messageBoxWinConsole(
         }
         strcat(str, "--yesno ");
     }
-    else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+    else if (eq("yesnocancel", aDialogType))
     {
         if (!aDefaultButton)
         {
@@ -2125,7 +2134,7 @@ int messageBoxWinConsole(
     }
     strcat(str, "\" ");
 
-    if (aDialogType && !strcmp("yesnocancel", aDialogType))
+    if (eq("yesnocancel", aDialogType))
     {
         strcat(str, "0 60 0 Yes \"\" No \"\"");
         strcat(str, "2>>");
@@ -2162,7 +2171,7 @@ int messageBoxWinConsole(
         return 0;
     }
 
-    if (aDialogType && !strcmp("yesnocancel", aDialogType))
+    if (eq("yesnocancel", aDialogType))
     {
         if (lBuff[0] == 'Y')
             return 1;
@@ -2466,7 +2475,7 @@ int _messageBox(
     int aDefaultButton)
 {
     char lChar;
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
 
     if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
     {
@@ -2505,7 +2514,7 @@ int _messageBox(
         {
             printf("\n%s\n\n", aTitle);
         }
-        if (aDialogType && !strcmp("yesno", aDialogType))
+        if (eq("yesno", aDialogType))
         {
             do
             {
@@ -2519,7 +2528,7 @@ int _messageBox(
             } while (lChar != 'y' && lChar != 'n');
             return lChar == 'y' ? 1 : 0;
         }
-        else if (aDialogType && !strcmp("okcancel", aDialogType))
+        else if (eq("okcancel", aDialogType))
         {
             do
             {
@@ -2533,7 +2542,7 @@ int _messageBox(
             } while (lChar != 'o' && lChar != 'c');
             return lChar == 'o' ? 1 : 0;
         }
-        else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        else if (eq("yesnocancel", aDialogType))
         {
             do
             {
@@ -2566,7 +2575,7 @@ int _notifyPopup(
     const char* aMessage,
     const char* aIconType)
 {
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
 
     if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) &&
         (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
@@ -2591,7 +2600,7 @@ const(char*) _inputBox(
 {
     static char[MAX_PATH_OR_CMD] lBuff = '\0';
     char* lEOF;
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
 
     version (TINYFD_LIB) {
         DWORD mode = 0;
@@ -2678,7 +2687,7 @@ const(char*) _saveFileDialog(
     const char* aSingleFilterDescription)
 {
     static char[MAX_PATH_OR_CMD] lBuff = '\0';
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     char[MAX_PATH_OR_CMD] lString = '\0';
     const(char)* p;
     lBuff[0] = '\0';
@@ -2738,7 +2747,7 @@ const(char*) _openFileDialog(
     const bool aAllowMultipleSelects)
 {
     static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     const(char)* p;
 
     if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
@@ -2791,7 +2800,7 @@ const(char*) _openFileDialog(
 const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
     static char[MAX_PATH_OR_CMD] lBuff = '\0';
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     const(char)* p;
 
     if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
@@ -2836,7 +2845,7 @@ const(char*) _colorChooser(
     ref const ubyte[3] aDefaultRGB,
     ref ubyte[3] aoResultRGB)
 {
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     char[8] lDefaultHexRGB = '\0';
     char* lpDefaultHexRGB;
     const(char)* p;
@@ -2891,7 +2900,7 @@ int isDarwin()
     utsname lUtsname;
     if (ret < 0)
     {
-        ret = !uname(&lUtsname) && !strcmp(lUtsname.sysname.ptr, "Darwin");
+        ret = !uname(&lUtsname) && eq(lUtsname.sysname.ptr, "Darwin");
     }
     return ret;
 }
@@ -3464,7 +3473,7 @@ int kdialogPresent()
         if (zenityPresent())
         {
             lDesktop = getenv("XDG_SESSION_DESKTOP");
-            if (!lDesktop || (strcmp(lDesktop, "KDE") && strcmp(lDesktop, "lxqt")))
+            if (!eq(lDesktop, "KDE") && !eq(lDesktop, "lxqt"))
             {
                 ret = 0;
                 return ret;
@@ -3751,7 +3760,7 @@ int _messageBox(
     int aDefaultButton)
 {
     char[MAX_PATH_OR_CMD] lBuff = '\0';
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     char* str;
     char* lpDialogString;
     FILE* lIn;
@@ -3797,11 +3806,11 @@ int _messageBox(
             strcat(str, "\" ");
         }
         strcat(str, "with icon ");
-        if (aIconType && !strcmp("error", aIconType))
+        if (eq("error", aIconType))
         {
             strcat(str, "stop ");
         }
-        else if (aIconType && !strcmp("warning", aIconType))
+        else if (eq("warning", aIconType))
         {
             strcat(str, "caution ");
         }
@@ -3809,14 +3818,14 @@ int _messageBox(
         {
             strcat(str, "note ");
         }
-        if (aDialogType && !strcmp("okcancel", aDialogType))
+        if (eq("okcancel", aDialogType))
         {
             if (!aDefaultButton)
             {
                 strcat(str, "default button \"Cancel\" ");
             }
         }
-        else if (aDialogType && !strcmp("yesno", aDialogType))
+        else if (eq("yesno", aDialogType))
         {
             strcat(str, "buttons {\"No\", \"Yes\"} ");
             if (aDefaultButton)
@@ -3829,7 +3838,7 @@ int _messageBox(
             }
             strcat(str, "cancel button \"No\"");
         }
-        else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        else if (eq("yesnocancel", aDialogType))
         {
             strcat(str, "buttons {\"No\", \"Yes\", \"Cancel\"} ");
             switch (aDefaultButton)
@@ -3883,13 +3892,13 @@ int _messageBox(
         }
 
         strcat(str, " --");
-        if (aDialogType && (!strcmp("okcancel", aDialogType) || !strcmp("yesno", aDialogType) || !strcmp("yesnocancel", aDialogType)))
+        if (eq("okcancel", aDialogType) || eq("yesno", aDialogType) || eq("yesnocancel", aDialogType))
         {
-            if (aIconType && (!strcmp("warning", aIconType) || !strcmp("error", aIconType)))
+            if (eq("warning", aIconType) || eq("error", aIconType))
             {
                 strcat(str, "warning");
             }
-            if (!strcmp("yesnocancel", aDialogType))
+            if (eq("yesnocancel", aDialogType))
             {
                 strcat(str, "yesnocancel");
             }
@@ -3898,11 +3907,11 @@ int _messageBox(
                 strcat(str, "yesno");
             }
         }
-        else if (aIconType && !strcmp("error", aIconType))
+        else if (eq("error", aIconType))
         {
             strcat(str, "error");
         }
-        else if (aIconType && !strcmp("warning", aIconType))
+        else if (eq("warning", aIconType))
         {
             strcat(str, "sorry");
         }
@@ -3916,7 +3925,7 @@ int _messageBox(
             strcat(str, aMessage);
         }
         strcat(str, "\"");
-        if (aDialogType && !strcmp("okcancel", aDialogType))
+        if (eq("okcancel", aDialogType))
         {
             strcat(str,
                    " --yes-label Ok --no-label Cancel");
@@ -3928,7 +3937,7 @@ int _messageBox(
             strcat(str, "\"");
         }
 
-        if (!strcmp("yesnocancel", aDialogType))
+        if (eq("yesnocancel", aDialogType))
         {
             strcat(str, "; x=$? ;if [ $x = 0 ] ;then echo 1;elif [ $x = 1 ] ;then echo 2;else echo 0;fi");
         }
@@ -3947,7 +3956,7 @@ int _messageBox(
                 return 1;
             }
             strcpy(str, "szAnswer=$(zenity");
-            if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
+            if (zenity3Present() >= 4 && !getenv("SSH_TTY"))
             {
                 strcat(str, " --attach=$(sleep .01;xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2)"); /* contribution: Paul Rouget */
             }
@@ -3985,24 +3994,23 @@ int _messageBox(
         }
         strcat(str, " --");
 
-        if (aDialogType && !strcmp("okcancel", aDialogType))
+        if (eq("okcancel", aDialogType))
         {
-            strcat(str,
-                   "question --ok-label=Ok --cancel-label=Cancel");
+            strcat(str, "question --ok-label=Ok --cancel-label=Cancel");
         }
-        else if (aDialogType && !strcmp("yesno", aDialogType))
+        else if (eq("yesno", aDialogType))
         {
             strcat(str, "question");
         }
-        else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        else if (eq("yesnocancel", aDialogType))
         {
             strcat(str, "list --column \"\" --hide-header \"Yes\" \"No\"");
         }
-        else if (aIconType && !strcmp("error", aIconType))
+        else if (eq("error", aIconType))
         {
             strcat(str, "error");
         }
-        else if (aIconType && !strcmp("warning", aIconType))
+        else if (eq("warning", aIconType))
         {
             strcat(str, "warning");
         }
@@ -4025,7 +4033,7 @@ int _messageBox(
         if ((zenity3Present() >= 3) || (!zenityPresent() && (shellementaryPresent() || qarmaPresent())))
         {
             strcat(str, " --icon-name=dialog-");
-            if (aIconType && (!strcmp("question", aIconType) || !strcmp("error", aIconType) || !strcmp("warning", aIconType)))
+            if (eq("question", aIconType) || eq("error", aIconType) || eq("warning", aIconType))
             {
                 strcat(str, aIconType);
             }
@@ -4038,7 +4046,7 @@ int _messageBox(
         if (tinyfd_silent)
             strcat(str, " 2>/dev/null ");
 
-        if (!strcmp("yesnocancel", aDialogType))
+        if (eq("yesnocancel", aDialogType))
         {
             strcat(str,
                    ");if [ $? = 1 ];then echo 0;elif [ $szAnswer = \"No\" ];then echo 2;else echo 1;fi");
@@ -4073,7 +4081,7 @@ int _messageBox(
         }
 
         strcat(str, "res=tkMessageBox.");
-        if (aDialogType && !strcmp("okcancel", aDialogType))
+        if (eq("okcancel", aDialogType))
         {
             strcat(str, "askokcancel(");
             if (aDefaultButton)
@@ -4085,7 +4093,7 @@ int _messageBox(
                 strcat(str, "default=tkMessageBox.CANCEL,");
             }
         }
-        else if (aDialogType && !strcmp("yesno", aDialogType))
+        else if (eq("yesno", aDialogType))
         {
             strcat(str, "askyesno(");
             if (aDefaultButton)
@@ -4097,7 +4105,7 @@ int _messageBox(
                 strcat(str, "default=tkMessageBox.NO,");
             }
         }
-        else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        else if (eq("yesnocancel", aDialogType))
         {
             strcat(str, "askyesnocancel(");
             switch (aDefaultButton)
@@ -4121,7 +4129,7 @@ int _messageBox(
         }
 
         strcat(str, "icon='");
-        if (aIconType && (!strcmp("question", aIconType) || !strcmp("error", aIconType) || !strcmp("warning", aIconType)))
+        if (eq("question", aIconType) || eq("error", aIconType) || eq("warning", aIconType))
         {
             strcat(str, aIconType);
         }
@@ -4145,7 +4153,7 @@ int _messageBox(
             strcat(str, "'");
         }
 
-        if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        if (eq("yesnocancel", aDialogType))
         {
             strcat(str, `);
 if res is None:
@@ -4179,7 +4187,7 @@ else:
                " -S -c \"import tkinter;from tkinter import messagebox;root=tkinter.Tk();root.withdraw();");
 
         strcat(str, "res=messagebox.");
-        if (aDialogType && !strcmp("okcancel", aDialogType))
+        if (eq("okcancel", aDialogType))
         {
             strcat(str, "askokcancel(");
             if (aDefaultButton)
@@ -4191,7 +4199,7 @@ else:
                 strcat(str, "default=messagebox.CANCEL,");
             }
         }
-        else if (aDialogType && !strcmp("yesno", aDialogType))
+        else if (eq("yesno", aDialogType))
         {
             strcat(str, "askyesno(");
             if (aDefaultButton)
@@ -4203,7 +4211,7 @@ else:
                 strcat(str, "default=messagebox.NO,");
             }
         }
-        else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        else if (eq("yesnocancel", aDialogType))
         {
             strcat(str, "askyesnocancel(");
             switch (aDefaultButton)
@@ -4227,7 +4235,7 @@ else:
         }
 
         strcat(str, "icon='");
-        if (aIconType && (!strcmp("question", aIconType) || !strcmp("error", aIconType) || !strcmp("warning", aIconType)))
+        if (eq("question", aIconType) || eq("error", aIconType) || eq("warning", aIconType))
         {
             strcat(str, aIconType);
         }
@@ -4251,7 +4259,7 @@ else:
             strcat(str, "'");
         }
 
-        if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        if (eq("yesnocancel", aDialogType))
         {
             strcat(str, `);
 if res is None:
@@ -4302,7 +4310,7 @@ else:
             strcpy(str, "xmessage");
         }
 
-        if (aDialogType && !strcmp("okcancel", aDialogType))
+        if (eq("okcancel", aDialogType))
         {
             strcat(str, " -buttons Ok:1,Cancel:0");
             switch (aDefaultButton)
@@ -4317,7 +4325,7 @@ else:
                 break;
             }
         }
-        else if (aDialogType && !strcmp("yesno", aDialogType))
+        else if (eq("yesno", aDialogType))
         {
             strcat(str, " -buttons Yes:1,No:0");
             switch (aDefaultButton)
@@ -4332,7 +4340,7 @@ else:
                 break;
             }
         }
-        else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        else if (eq("yesnocancel", aDialogType))
         {
             strcat(str, " -buttons Yes:1,No:2,Cancel:0");
             switch (aDefaultButton)
@@ -4442,7 +4450,7 @@ else:
 
         if (!xdialogPresent() && !gdialogPresent())
         {
-            if (aDialogType && (!strcmp("okcancel", aDialogType) || !strcmp("yesno", aDialogType) || !strcmp("yesnocancel", aDialogType)))
+            if (eq("okcancel", aDialogType) || eq("yesno", aDialogType) || eq("yesnocancel", aDialogType))
             {
                 strcat(str, "--backtitle \"");
                 strcat(str, "tab: move focus");
@@ -4450,7 +4458,7 @@ else:
             }
         }
 
-        if (aDialogType && !strcmp("okcancel", aDialogType))
+        if (eq("okcancel", aDialogType))
         {
             if (!aDefaultButton)
             {
@@ -4459,7 +4467,7 @@ else:
             strcat(str,
                    "--yes-label \"Ok\" --no-label \"Cancel\" --yesno ");
         }
-        else if (aDialogType && !strcmp("yesno", aDialogType))
+        else if (eq("yesno", aDialogType))
         {
             if (!aDefaultButton)
             {
@@ -4467,7 +4475,7 @@ else:
             }
             strcat(str, "--yesno ");
         }
-        else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        else if (eq("yesnocancel", aDialogType))
         {
             if (!aDefaultButton)
             {
@@ -4488,7 +4496,7 @@ else:
 
         if (lWasGraphicDialog)
         {
-            if (aDialogType && !strcmp("yesnocancel", aDialogType))
+            if (eq("yesnocancel", aDialogType))
             {
                 strcat(str, "0 60 0 Yes \"\" No \"\") 2>/tmp/tinyfd.txt;" ~
                             "if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;" ~
@@ -4501,7 +4509,7 @@ else:
         }
         else
         {
-            if (aDialogType && !strcmp("yesnocancel", aDialogType))
+            if (eq("yesnocancel", aDialogType))
             {
                 strcat(str, "0 60 0 Yes \"\" No \"\" >/dev/tty ) 2>/tmp/tinyfd.txt;" ~
                             "if [ $? = 0 ];then tinyfdBool=1;else tinyfdBool=0;fi;" ~
@@ -4563,7 +4571,7 @@ else:
             strcat(str, aMessage);
             strcat(str, "\"; ");
         }
-        if (aDialogType && !strcmp("yesno", aDialogType))
+        if (eq("yesno", aDialogType))
         {
             strcat(str, "echo -n \"y/n: \"; ");
             strcat(str, "stty sane -echo;");
@@ -4573,7 +4581,7 @@ else:
                    "if echo \"$answer\" | grep -iq \"^y\";then\n");
             strcat(str, "\techo 1\nelse\n\techo 0\nfi");
         }
-        else if (aDialogType && !strcmp("okcancel", aDialogType))
+        else if (eq("okcancel", aDialogType))
         {
             strcat(str, "echo -n \"[O]kay/[C]ancel: \"; ");
             strcat(str, "stty sane -echo;");
@@ -4583,7 +4591,7 @@ else:
                    "if echo \"$answer\" | grep -iq \"^o\";then\n");
             strcat(str, "\techo 1\nelse\n\techo 0\nfi");
         }
-        else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        else if (eq("yesnocancel", aDialogType))
         {
             strcat(str, "echo -n \"[Y]es/[N]o/[C]ancel: \"; ");
             strcat(str, "stty sane -echo;");
@@ -4604,7 +4612,7 @@ else:
         strcat(str,
                " >/tmp/tinyfd.txt';cat /tmp/tinyfd.txt;rm /tmp/tinyfd.txt");
     }
-    else if (!isTerminalRunning() && pythonDbusPresent() && !strcmp("ok", aDialogType))
+    else if (!isTerminalRunning() && pythonDbusPresent() && eq("ok", aDialogType))
     {
         if (lQuery)
         {
@@ -4633,7 +4641,7 @@ else:
         }
         strcat(str, "','','',5000)\"");
     }
-    else if (!isTerminalRunning() && (perlPresent() >= 2) && !strcmp("ok", aDialogType))
+    else if (!isTerminalRunning() && (perlPresent() >= 2) && eq("ok", aDialogType))
     {
         if (lQuery)
         {
@@ -4648,7 +4656,7 @@ else:
                     my \$notificationId;\$notificationId = \$notificationsObject->Notify(shift, 0, '%s', '%s', '%s', [], {}, -1);"`,
                 aIconType ? aIconType : "", aTitle ? aTitle : "", aMessage ? aMessage : "");
     }
-    else if (!isTerminalRunning() && notifysendPresent() && !strcmp("ok", aDialogType))
+    else if (!isTerminalRunning() && notifysendPresent() && eq("ok", aDialogType))
     {
 
         if (lQuery)
@@ -4702,7 +4710,7 @@ else:
         info.c_cc[VMIN] = 1;
         info.c_cc[VTIME] = 0;
         tcsetattr(0, TCSANOW, &info);
-        if (aDialogType && !strcmp("yesno", aDialogType))
+        if (eq("yesno", aDialogType))
         {
             do
             {
@@ -4717,7 +4725,7 @@ else:
             } while (lChar != 'y' && lChar != 'n');
             lResult = lChar == 'y' ? 1 : 0;
         }
-        else if (aDialogType && !strcmp("okcancel", aDialogType))
+        else if (eq("okcancel", aDialogType))
         {
             do
             {
@@ -4732,7 +4740,7 @@ else:
             } while (lChar != 'o' && lChar != 'c');
             lResult = lChar == 'o' ? 1 : 0;
         }
-        else if (aDialogType && !strcmp("yesnocancel", aDialogType))
+        else if (eq("yesnocancel", aDialogType))
         {
             do
             {
@@ -4783,19 +4791,19 @@ else:
     removeLastNL(lBuff.ptr);
     /* printf( "lBuff1: %s len: %lu \n" , lBuff , strlen(lBuff.ptr) ) ; */
 
-    if (aDialogType && !strcmp("yesnocancel", aDialogType))
+    if (eq("yesnocancel", aDialogType))
     {
         if (lBuff[0] == '1')
         {
-            if (!strcmp(lBuff.ptr + 1, "Yes"))
+            if (eq(lBuff.ptr + 1, "Yes"))
                 strcpy(lBuff.ptr, "1");
-            else if (!strcmp(lBuff.ptr + 1, "No"))
+            else if (eq(lBuff.ptr + 1, "No"))
                 strcpy(lBuff.ptr, "2");
         }
     }
     /* printf( "lBuff2: %s len: %lu \n" , lBuff , strlen(lBuff.ptr) ) ; */
 
-    lResult = !strcmp(lBuff.ptr, "2") ? 2 : !strcmp(lBuff.ptr, "1") ? 1 : 0;
+    lResult = eq(lBuff.ptr, "2") ? 2 : eq(lBuff.ptr, "1") ? 1 : 0;
 
     /* printf( "lResult: %d\n" , lResult ) ; */
     free(str);
@@ -4820,7 +4828,7 @@ int _notifyPopup(
         return _messageBox(aTitle, aMessage, "ok", aIconType, 0);
     }
 
-    lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    lQuery = eq(aTitle, "tinyfd_query");
     lTitleLen = aTitle ? strlen(aTitle) : 0;
     lMessageLen = aMessage ? strlen(aMessage) : 0;
     if (!aTitle || !lQuery)
@@ -5047,7 +5055,7 @@ const(char*) _inputBox(
     const char* aDefaultInput)
 {
     static char[MAX_PATH_OR_CMD] lBuff = '\0';
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     char* str;
     char* lpDialogString;
     FILE* lIn;
@@ -5150,8 +5158,7 @@ const(char*) _inputBox(
             strcat(str, aTitle);
             strcat(str, "\"");
         }
-        strcat(str,
-               ");if [ $? = 0 ];then echo 1$szAnswer;else echo 0$szAnswer;fi");
+        strcat(str, ");if [ $? = 0 ];then echo 1$szAnswer;else echo 0$szAnswer;fi");
     }
     else if (zenityPresent() || matedialogPresent() || shellementaryPresent() || qarmaPresent())
     {
@@ -5163,7 +5170,7 @@ const(char*) _inputBox(
                 return cast(const(char)*)1;
             }
             strcpy(str, "szAnswer=$(zenity");
-            if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
+            if (zenity3Present() >= 4 && !getenv("SSH_TTY"))
             {
                 strcat(str, " --attach=$(sleep .01;xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2)"); /* contribution: Paul Rouget */
             }
@@ -5670,7 +5677,7 @@ const(char*) _saveFileDialog(
     const char* aSingleFilterDescription)
 {
     static char[MAX_PATH_OR_CMD] lBuff = '\0';
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     char[MAX_PATH_OR_CMD] str_buf1 = '\0';
     char[MAX_PATH_OR_CMD] str_buf2 = '\0';
     char* str = str_buf1.ptr;
@@ -5795,7 +5802,7 @@ const(char*) _saveFileDialog(
                 return cast(const(char)*)1;
             }
             strcpy(str, "zenity");
-            if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
+            if (zenity3Present() >= 4 && !getenv("SSH_TTY"))
             {
                 strcat(str, " --attach=$(sleep .01;xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2)"); /* contribution: Paul Rouget */
             }
@@ -6131,7 +6138,7 @@ const(char*) _openFileDialog(
     const bool aAllowMultipleSelects)
 {
     static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     char[MAX_PATH_OR_CMD] str_buf1 = '\0';
     char[MAX_PATH_OR_CMD] str_buf2 = '\0';
     char* str = str_buf1.ptr;
@@ -6295,7 +6302,7 @@ const(char*) _openFileDialog(
                 return cast(const(char)*)1;
             }
             strcpy(str, "zenity");
-            if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
+            if (zenity3Present() >= 4 && !getenv("SSH_TTY"))
             {
                 strcat(str, " --attach=$(sleep .01;xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2)"); /* contribution: Paul Rouget */
             }
@@ -6663,7 +6670,7 @@ else:
 const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
 {
     static char[MAX_PATH_OR_CMD] lBuff = '\0';
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     char[MAX_PATH_OR_CMD] str_buf = '\0';
     char* str = str_buf.ptr;
     FILE* lIn;
@@ -6747,7 +6754,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
                 return cast(const(char)*)1;
             }
             strcpy(str, "zenity");
-            if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
+            if (zenity3Present() >= 4 && !getenv("SSH_TTY"))
             {
                 strcat(str, " --attach=$(sleep .01;xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2)"); /* contribution: Paul Rouget */
             }
@@ -6986,7 +6993,7 @@ const(char*) _colorChooser(
     ref ubyte[3] aoResultRGB)
 {
     static char[128] lBuff = '\0';
-    const bool lQuery = aTitle && !strcmp(aTitle, "tinyfd_query");
+    const bool lQuery = eq(aTitle, "tinyfd_query");
     char[128] tmp_buf = '\0';
     char[MAX_PATH_OR_CMD] str_buf = '\0';
     char* lTmp = tmp_buf.ptr;
@@ -7091,7 +7098,7 @@ const(char*) _colorChooser(
                 return cast(const(char)*)1;
             }
             strcpy(str, "zenity");
-            if ((zenity3Present() >= 4) && !getenv("SSH_TTY"))
+            if (zenity3Present() >= 4 && !getenv("SSH_TTY"))
             {
                 strcat(str, " --attach=$(sleep .01;xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2)"); /* contribution: Paul Rouget */
             }
