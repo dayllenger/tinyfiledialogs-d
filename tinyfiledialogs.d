@@ -20,7 +20,7 @@ SSH supported via automatic switch to console mode or X11 forwarding.
 
 Each function is documented with examples.
 The dialogs can be forced into console mode.
-Supports UTF-8.
+Supports UTF-8 (except Windows console).
 
 Windows XP to 10:
 - native code & vbs create the graphic dialogs
@@ -97,6 +97,10 @@ misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
 module tinyfiledialogs;
+
+// version = TINYFD_NOLIB;
+// version = TINYFD_NOSELECTFOLDERWIN;
+version = TINYFD_NOCCSUNICODE;
 
 extern (C) nothrow @nogc:
 
@@ -389,63 +393,59 @@ import core.stdc.ctype;
 import core.stdc.stdlib;
 import core.stdc.string;
 
-// version = TINYFD_NOLIB;
-// version = TINYFD_NOSELECTFOLDERWIN;
-version = TINYFD_NOCCSUNICODE;
-
 version (Windows)
 {
     import core.stdc.stdio;
     import core.stdc.wchar_;
     import core.sys.windows.commdlg;
     import core.sys.windows.w32api;
+    import core.sys.windows.winbase;
+    import core.sys.windows.wincon : GetConsoleMode, SetConsoleMode, GetConsoleWindow, ENABLE_ECHO_INPUT;
+    import core.sys.windows.windef;
+    import core.sys.windows.winnls;
 
     static assert(_WIN32_WINNT >= 0x0500);
 
     enum SLASH = "\\";
 
+    int _getch();
+    FILE* _popen(const char* command, const char* mode);
+    int _pclose(FILE* stream);
+
     version (TINYFD_NOLIB)
     {
         bool gWarningDisplayed = true;
-        enum bool TINYFD_LIB = false;
     }
     else
     {
+        version = TINYFD_LIB;
         import core.sys.windows.com : COINIT_APARTMENTTHREADED;
-        import core.sys.windows.winbase;
-        import core.sys.windows.wincon : GetConsoleMode, SetConsoleMode, GetConsoleWindow;
-        import core.sys.windows.windef;
-        import core.sys.windows.winnls;
-        import core.sys.windows.winuser;
         import core.sys.windows.wingdi : RGB, GetRValue, GetGValue, GetBValue;
+        import core.sys.windows.winuser;
 
         pragma(lib, "comdlg32.lib");
         pragma(lib, "ole32.lib");
         pragma(lib, "user32.lib");
 
-        int _getch();
         FILE* _wfopen(const wchar* filename, const wchar* mode);
         int _wremove(const wchar* path);
         wchar* _wgetenv(const wchar* varname);
-        FILE* _popen(const char* command, const char* mode);
-        int _pclose(FILE* stream);
         // header versions are not nothrow @nogc
         extern(Windows) HRESULT CoInitializeEx(LPVOID, DWORD);
         extern(Windows) void CoUninitialize();
 
         bool gWarningDisplayed;
-        enum bool TINYFD_LIB = true;
     }
 
     version (TINYFD_NOSELECTFOLDERWIN) {}
     else
     {
+        version = TINYFD_SELECTFOLDERWIN;
         import core.sys.windows.shlobj : BFFM_INITIALIZED, BFFM_SETSELECTIONW, BIF_USENEWUI,
             BROWSEINFOW, LPCITEMIDLIST, LPITEMIDLIST, PBROWSEINFOW;
 
         extern(Windows) LPITEMIDLIST SHBrowseForFolderW(PBROWSEINFOW);
         extern(Windows) BOOL SHGetPathFromIDListW(LPCITEMIDLIST, LPWSTR);
-        version = TINYFD_SELECTFOLDERWIN;
     }
 }
 else
@@ -710,35 +710,15 @@ const(char)* ensureFilesExist(char* aDestination, const char* aSourcePathsAndNam
 
 version (Windows)
 {
-    version (TINYFD_NOLIB)
+    bool fileExists(const char* aFilePathAndName)
     {
-        bool fileExists(const char* aFilePathAndName)
-        {
-            if (!some(aFilePathAndName))
-                return false;
+        if (!some(aFilePathAndName))
+            return false;
 
-            if (1) // was tinyfd_winUtf8
-                return true; /* we cannot test */
-
-            FILE* lIn = fopen(aFilePathAndName, "r");
-            if (!lIn)
-                return false;
-            fclose(lIn);
-            return true;
-        }
-    }
-    else
-    {
-        bool fileExists(const char* aFilePathAndName)
-        {
-            if (!some(aFilePathAndName))
-                return false;
-
-            wchar* lTmpWChar = utf8to16(aFilePathAndName);
-            DWORD attribs = GetFileAttributes(lTmpWChar);
-            free(lTmpWChar);
-            return !(attribs & FILE_ATTRIBUTE_DEVICE) && !(attribs & FILE_ATTRIBUTE_DIRECTORY);
-        }
+        wchar* lTmpWChar = utf8to16(aFilePathAndName);
+        DWORD attribs = GetFileAttributes(lTmpWChar);
+        free(lTmpWChar);
+        return !(attribs & FILE_ATTRIBUTE_DEVICE) && !(attribs & FILE_ATTRIBUTE_DIRECTORY);
     }
 }
 else // unix
@@ -776,23 +756,44 @@ bool replaceChr(char* aString, const char aOldChr, const char aNewChr)
     return ret;
 }
 
-version (TINYFD_NOLIB) {
+int sizeUtf16(const char* aUtf8string)
+{
+    return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+                               aUtf8string, -1, null, 0);
+}
+
+wchar* utf8to16(const char* str)
+{
+    if (!some(str))
+        return null;
+
+    int lSize = sizeUtf16(str);
+    wchar* ret = cast(wchar*)malloc(lSize * wchar.sizeof);
+    lSize = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+                                str, -1, ret, lSize);
+    if (lSize == 0)
+    {
+        free(ret);
+        return null;
+    }
+    return ret;
+}
 
 bool dirExists(const char* aDirPath)
 {
     if (!some(aDirPath))
         return false;
-
-    stat lInfo;
-    if (stat(aDirPath, &lInfo) != 0)
-        return false;
-    else if (1) // was tinyfd_winUtf8
-        return true; /* we cannot test */
-    else if (lInfo.st_mode & S_IFDIR)
+    size_t lDirLen = strlen(aDirPath);
+    if (lDirLen == 2 && aDirPath[1] == ':')
         return true;
-    else
-        return false;
+
+    wchar* lTmpWChar = utf8to16(aDirPath);
+    DWORD attribs = GetFileAttributes(lTmpWChar);
+    free(lTmpWChar);
+    return (attribs & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
+
+version (TINYFD_NOLIB) {
 
 void _beep()
 {
@@ -885,33 +886,10 @@ static if (!is(WC_ERR_INVALID_CHARS))
 /* undefined prior to Vista, so not yet in MINGW header file */
 enum DWORD WC_ERR_INVALID_CHARS = 0x00000080;
 
-int sizeUtf16(const char* aUtf8string)
-{
-    return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-                               aUtf8string, -1, null, 0);
-}
-
 int sizeUtf8(const wchar* aUtf16string)
 {
     return WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
                                aUtf16string, -1, null, 0, null, null);
-}
-
-wchar* utf8to16(const char* str)
-{
-    if (!some(str))
-        return null;
-
-    int lSize = sizeUtf16(str);
-    wchar* ret = cast(wchar*)malloc(lSize * wchar.sizeof);
-    lSize = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-                                str, -1, ret, lSize);
-    if (lSize == 0)
-    {
-        free(ret);
-        return null;
-    }
-    return ret;
 }
 
 char* utf16to8(const wchar* str)
@@ -929,20 +907,6 @@ char* utf16to8(const wchar* str)
         return null;
     }
     return ret;
-}
-
-bool dirExists(const char* aDirPath)
-{
-    if (!some(aDirPath))
-        return false;
-    size_t lDirLen = strlen(aDirPath);
-    if (lDirLen == 2 && aDirPath[1] == ':')
-        return true;
-
-    wchar* lTmpWChar = utf8to16(aDirPath);
-    DWORD attribs = GetFileAttributes(lTmpWChar);
-    free(lTmpWChar);
-    return (attribs & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
 
 bool replaceWchar(wchar* aString, const wchar aOldChr, const wchar aNewChr)
@@ -963,6 +927,12 @@ bool replaceWchar(wchar* aString, const wchar aOldChr, const wchar aNewChr)
         ret = true;
     }
     return ret;
+}
+
+bool willBeGui()
+{
+    return (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) &&
+           (!getenv("SSH_CLIENT") || getenv("DISPLAY"));
 }
 
 extern (Windows) int EnumThreadWndProc(HWND hwnd, LPARAM lParam)
@@ -1815,33 +1785,29 @@ const(char)* colorChooserWinGui(
 
 int dialogPresent()
 {
-    static int lDialogPresent = -1;
-    char[MAX_PATH_OR_CMD] lBuff = '\0';
-    FILE* lIn;
-    const char* lString = "dialog.exe";
-    if (lDialogPresent < 0)
+    static int ret = -1;
+    if (ret < 0)
     {
-        lIn = _popen("where dialog.exe", "r");
+        FILE* lIn = _popen("where dialog.exe", "r");
         if (!lIn)
         {
-            lDialogPresent = 0;
+            ret = 0;
             return 0;
         }
+
+        char[MAX_PATH_OR_CMD] lBuff = '\0';
+        const char* lString = "dialog.exe";
         while (fgets(lBuff.ptr, lBuff.sizeof, lIn) !is null)
         {
         }
         _pclose(lIn);
         removeLastNL(lBuff.ptr);
         if (strcmp(lBuff.ptr + strlen(lBuff.ptr) - strlen(lString), lString))
-        {
-            lDialogPresent = 0;
-        }
+            ret = 0;
         else
-        {
-            lDialogPresent = 1;
-        }
+            ret = 1;
     }
-    return lDialogPresent;
+    return ret;
 }
 
 int messageBoxWinConsole(
@@ -2251,7 +2217,9 @@ int _messageBox(
     char lChar;
     const bool lQuery = eq(aTitle, "tinyfd_query");
 
-    if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
+    version (TINYFD_LIB) {
+
+    if (willBeGui())
     {
         if (lQuery)
         {
@@ -2261,7 +2229,8 @@ int _messageBox(
         return messageBoxWinGui(
             aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
     }
-    else if (dialogPresent())
+}
+    if (dialogPresent())
     {
         if (lQuery)
         {
@@ -2351,8 +2320,9 @@ int _notifyPopup(
 {
     const bool lQuery = eq(aTitle, "tinyfd_query");
 
-    if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) &&
-        (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
+    version (TINYFD_LIB) {
+
+    if (willBeGui())
     {
         if (lQuery)
         {
@@ -2361,10 +2331,8 @@ int _notifyPopup(
         }
         return notifyWinGui(aTitle, aMessage, aIconType);
     }
-    else
-    {
-        return _messageBox(aTitle, aMessage, "ok", aIconType, 0);
-    }
+}
+    return _messageBox(aTitle, aMessage, "ok", aIconType, 0);
 }
 
 const(char*) _inputBox(
@@ -2377,11 +2345,11 @@ const(char*) _inputBox(
     const bool lQuery = eq(aTitle, "tinyfd_query");
 
     version (TINYFD_LIB) {
-        DWORD mode = 0;
-        HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
-    }
-    if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) &&
-        (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
+
+    DWORD mode = 0;
+    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+
+    if (willBeGui())
     {
         if (lQuery)
         {
@@ -2391,7 +2359,8 @@ const(char*) _inputBox(
         lBuff[0] = '\0';
         return inputBoxWinGui(lBuff.ptr, aTitle, aMessage, aDefaultInput);
     }
-    else if (dialogPresent())
+}
+    if (dialogPresent())
     {
         if (lQuery)
         {
@@ -2424,18 +2393,21 @@ const(char*) _inputBox(
             printf("%s\n", aMessage);
         }
         printf("(ctrl-Z + enter to cancel): ");
-        version (TINYFD_LIB) {
+        version (TINYFD_LIB)
+        {
             if (!aDefaultInput)
             {
                 GetConsoleMode(hStdin, &mode);
                 SetConsoleMode(hStdin, mode & (~ENABLE_ECHO_INPUT));
             }
         }
+
         lEOF = fgets(lBuff.ptr, lBuff.sizeof, stdin);
         if (!lEOF)
             return null;
 
-        version (TINYFD_LIB) {
+        version (TINYFD_LIB)
+        {
             if (!aDefaultInput)
             {
                 SetConsoleMode(hStdin, mode);
@@ -2463,7 +2435,9 @@ const(char*) _saveFileDialog(
     const(char)* p;
     lBuff[0] = '\0';
 
-    if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
+    version (TINYFD_LIB) {
+
+    if (willBeGui())
     {
         if (lQuery)
         {
@@ -2471,9 +2445,11 @@ const(char*) _saveFileDialog(
             return cast(const(char)*)1;
         }
         p = saveFileDialogWinGui(lBuff.ptr, aTitle, aDefaultPathAndFile, aNumOfFilterPatterns,
-                                  aFilterPatterns, aSingleFilterDescription);
+                                 aFilterPatterns, aSingleFilterDescription);
+        goto end;
     }
-    else if (dialogPresent())
+}
+    if (dialogPresent())
     {
         if (lQuery)
         {
@@ -2491,6 +2467,8 @@ const(char*) _saveFileDialog(
         }
         p = _inputBox(aTitle, "Save file", "");
     }
+
+    end:
 
     if (!some(p))
         return null;
@@ -2515,18 +2493,21 @@ const(char*) _openFileDialog(
     const bool lQuery = eq(aTitle, "tinyfd_query");
     const(char)* p;
 
-    if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
+    version (TINYFD_LIB) {
+
+    if (willBeGui())
     {
         if (lQuery)
         {
             response("windows");
             return cast(const(char)*)1;
         }
-        p = openFileDialogWinGui(lBuff.ptr,
-                                  aTitle, aDefaultPathAndFile, aNumOfFilterPatterns,
-                                  aFilterPatterns, aSingleFilterDescription, aAllowMultipleSelects);
+        p = openFileDialogWinGui(lBuff.ptr, aTitle, aDefaultPathAndFile, aNumOfFilterPatterns,
+                                 aFilterPatterns, aSingleFilterDescription, aAllowMultipleSelects);
+        goto end;
     }
-    else if (dialogPresent())
+}
+    if (dialogPresent())
     {
         if (lQuery)
         {
@@ -2546,18 +2527,14 @@ const(char*) _openFileDialog(
         p = _inputBox(aTitle, "Open file", "");
     }
 
+    end:
+
     if (!some(p))
         return null;
-
     if (aAllowMultipleSelects && strchr(p, '|'))
-    {
         p = ensureFilesExist(lBuff.ptr, p);
-    }
     else if (!fileExists(p))
-    {
         return null;
-    }
-    /* printf( "lBuff3: %s\n" , p ) ; */
     return p;
 }
 
@@ -2567,7 +2544,9 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
     const bool lQuery = eq(aTitle, "tinyfd_query");
     const(char)* p;
 
-    if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
+    version (TINYFD_LIB) {
+
+    if (willBeGui())
     {
         if (lQuery)
         {
@@ -2575,9 +2554,13 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
             return cast(const(char)*)1;
         }
         version (TINYFD_SELECTFOLDERWIN)
+        {
             p = selectFolderDialogWinGui(lBuff.ptr, aTitle, aDefaultPath);
+            return dirExists(p) ? p : null;
+        }
     }
-    else if (dialogPresent())
+}
+    if (dialogPresent())
     {
         if (lQuery)
         {
@@ -2595,10 +2578,7 @@ const(char*) _selectFolderDialog(const char* aTitle, const char* aDefaultPath)
         }
         p = _inputBox(aTitle, "Select folder", "");
     }
-
-    if (!dirExists(p))
-        return null;
-    return p;
+    return dirExists(p) ? p : null;
 }
 
 const(char*) _colorChooser(
@@ -2612,7 +2592,9 @@ const(char*) _colorChooser(
     char* lpDefaultHexRGB;
     const(char)* p;
 
-    if (TINYFD_LIB && (!tinyfd_forceConsole || !(GetConsoleWindow() || dialogPresent())) && (!getenv("SSH_CLIENT") || getenv("DISPLAY")))
+    version (TINYFD_LIB) {
+
+    if (willBeGui())
     {
         if (lQuery)
         {
@@ -2621,7 +2603,8 @@ const(char*) _colorChooser(
         }
         return colorChooserWinGui(aTitle, aDefaultHexRGB, aDefaultRGB, aoResultRGB);
     }
-    else if (aDefaultHexRGB)
+}
+    if (aDefaultHexRGB)
     {
         lpDefaultHexRGB = cast(char*)aDefaultHexRGB;
     }
