@@ -1393,90 +1393,49 @@ const(char)* inputBoxWinGui(
     return aoBuff;
 }
 
-const(wchar)* _saveFileDialogW(
-    const wchar* aTitle,
-    const wchar* aDefaultPathAndFile,
+wchar* buildFilterString(
     const int aNumOfFilterPatterns,
-    const wchar** aFilterPatterns,
-    const wchar* aSingleFilterDescription)
+    const char** aFilterPatterns,
+    const char* aSingleFilterDescription)
 {
-    static wchar[MAX_PATH_OR_CMD] lBuff = '\0';
-    wchar[MAX_PATH_OR_CMD] lDirname = '\0';
-    wchar[MAX_PATH_OR_CMD] str = '\0';
-    wchar[MAX_PATH_OR_CMD] lFilterPatterns_buf = '\0';
-    wchar* lFilterPatterns = lFilterPatterns_buf.ptr;
-
-    HRESULT lHResult = CoInitializeEx(null, 0);
-
-    getPathWithoutFinalSlashW(lDirname.ptr, aDefaultPathAndFile);
-    getLastNameW(lBuff.ptr, aDefaultPathAndFile);
+    char[MAX_PATH_OR_CMD] str = '\0';
+    char[MAX_PATH_OR_CMD] str2 = '\0';
 
     if (aNumOfFilterPatterns > 0)
     {
-        if (wsome(aSingleFilterDescription))
+        if (some(aSingleFilterDescription))
         {
-            wcscpy(lFilterPatterns, aSingleFilterDescription);
-            wcscat(lFilterPatterns, "\n");
+            strcpy(str.ptr, aSingleFilterDescription);
+            strcat(str.ptr, "\n");
         }
-        wcscat(lFilterPatterns, aFilterPatterns[0]);
-        foreach (i; 1 .. aNumOfFilterPatterns)
+        foreach (i; 0 .. aNumOfFilterPatterns)
         {
-            wcscat(lFilterPatterns, ";");
-            wcscat(lFilterPatterns, aFilterPatterns[i]);
+            if (i != 0)
+                strcat(str.ptr, ";");
+            strcat(str.ptr, aFilterPatterns[i]);
         }
-        wcscat(lFilterPatterns, "\n");
-        if (!wsome(aSingleFilterDescription))
+        strcat(str.ptr, "\n");
+        if (!some(aSingleFilterDescription))
         {
-            wcscpy(str.ptr, lFilterPatterns);
-            wcscat(lFilterPatterns, str.ptr);
+            strcpy(str2.ptr, str.ptr);
+            strcat(str.ptr, str2.ptr);
         }
-        wcscat(lFilterPatterns, "All Files\n*.*\n");
-        wchar* p = lFilterPatterns;
+        strcat(str.ptr, "All Files\n*.*\n");
+    }
+
+    wchar* ret = utf8to16(str.ptr);
+    if (wsome(ret))
+    {
+        wchar* p = ret;
         while ((p = wcschr(p, '\n')) !is null)
         {
             *p = '\0';
             p++;
         }
-    }
-
-    OPENFILENAMEW ofn = {0};
-    ofn.lStructSize = OPENFILENAMEW.sizeof;
-    ofn.hwndOwner = GetForegroundWindow();
-    ofn.hInstance = null;
-    ofn.lpstrFilter = wcslen(lFilterPatterns) ? lFilterPatterns : null;
-    ofn.lpstrCustomFilter = null;
-    ofn.nMaxCustFilter = 0;
-    ofn.nFilterIndex = 1;
-    ofn.lpstrFile = lBuff.ptr;
-
-    ofn.nMaxFile = MAX_PATH_OR_CMD;
-    ofn.lpstrFileTitle = null;
-    ofn.nMaxFileTitle = MAX_PATH_OR_CMD / 2;
-    ofn.lpstrInitialDir = wcslen(lDirname.ptr) ? lDirname.ptr : null;
-    ofn.lpstrTitle = wsome(aTitle) ? aTitle : null;
-    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST;
-    ofn.nFileOffset = 0;
-    ofn.nFileExtension = 0;
-    ofn.lpstrDefExt = null;
-    ofn.lCustData = 0L;
-    ofn.lpfnHook = null;
-    ofn.lpTemplateName = null;
-
-    wchar* lRetval;
-    if (GetSaveFileNameW(&ofn) == 0)
-    {
-        lRetval = null;
+        return ret;
     }
     else
-    {
-        lRetval = lBuff.ptr;
-    }
-
-    if (lHResult == S_OK || lHResult == S_FALSE)
-    {
-        CoUninitialize();
-    }
-    return lRetval;
+        return null;
 }
 
 const(char)* saveFileDialogWinGui(
@@ -1487,31 +1446,59 @@ const(char)* saveFileDialogWinGui(
     const char** aFilterPatterns,
     const char* aSingleFilterDescription)
 {
-    wchar** lFilterPatterns = cast(wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
-    foreach (i; 0 .. aNumOfFilterPatterns)
-    {
-        lFilterPatterns[i] = utf8to16(aFilterPatterns[i]);
-    }
+    static wchar[MAX_PATH_OR_CMD] lBuff = '\0';
+    wchar[MAX_PATH_OR_CMD] lDirname = '\0';
 
     wchar* lTitle = utf8to16(aTitle);
     wchar* lDefaultPathAndFile = utf8to16(aDefaultPathAndFile);
-    wchar* lSingleFilterDescription = utf8to16(aSingleFilterDescription);
+    wchar* lFilterStr = buildFilterString(aNumOfFilterPatterns, aFilterPatterns, aSingleFilterDescription);
 
-    const(wchar)* lTmpWChar = _saveFileDialogW(
-        lTitle,
-        lDefaultPathAndFile,
-        aNumOfFilterPatterns,
-        lFilterPatterns,
-        lSingleFilterDescription);
+    getPathWithoutFinalSlashW(lDirname.ptr, lDefaultPathAndFile);
+    getLastNameW(lBuff.ptr, lDefaultPathAndFile);
+
+    HRESULT lHResult = CoInitializeEx(null, 0);
+
+    OPENFILENAMEW ofn = {0};
+    ofn.lStructSize = OPENFILENAMEW.sizeof;
+    ofn.hwndOwner = GetForegroundWindow();
+    ofn.hInstance = null;
+    ofn.lpstrFilter = lFilterStr;
+    ofn.lpstrCustomFilter = null;
+    ofn.nMaxCustFilter = 0;
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFile = lBuff.ptr;
+
+    ofn.nMaxFile = MAX_PATH_OR_CMD;
+    ofn.lpstrFileTitle = null;
+    ofn.nMaxFileTitle = MAX_PATH_OR_CMD / 2;
+    ofn.lpstrInitialDir = wsome(lDirname.ptr) ? lDirname.ptr : null;
+    ofn.lpstrTitle = wsome(lTitle) ? lTitle : null;
+    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST;
+    ofn.nFileOffset = 0;
+    ofn.nFileExtension = 0;
+    ofn.lpstrDefExt = null;
+    ofn.lCustData = 0;
+    ofn.lpfnHook = null;
+    ofn.lpTemplateName = null;
+
+    wchar* lTmpWChar;
+    if (GetSaveFileNameW(&ofn) == 0)
+    {
+        lTmpWChar = null;
+    }
+    else
+    {
+        lTmpWChar = lBuff.ptr;
+    }
+
+    if (lHResult == S_OK || lHResult == S_FALSE)
+    {
+        CoUninitialize();
+    }
 
     free(lTitle);
     free(lDefaultPathAndFile);
-    free(lSingleFilterDescription);
-    foreach (i; 0 .. aNumOfFilterPatterns)
-    {
-        free(lFilterPatterns[i]);
-    }
-    free(lFilterPatterns);
+    free(lFilterStr);
 
     if (!lTmpWChar)
         return null;
@@ -1523,59 +1510,32 @@ const(char)* saveFileDialogWinGui(
     return aoBuff;
 }
 
-const(wchar)* _openFileDialogW(
-    const wchar* aTitle,
-    const wchar* aDefaultPathAndFile,
+const(char)* openFileDialogWinGui(
+    char* aoBuff,
+    const char* aTitle,
+    const char* aDefaultPathAndFile,
     const int aNumOfFilterPatterns,
-    const wchar** aFilterPatterns,
-    const wchar* aSingleFilterDescription,
+    const char** aFilterPatterns,
+    const char* aSingleFilterDescription,
     const bool aAllowMultipleSelects)
 {
     static wchar[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
-
     wchar[MAX_PATH_OR_CMD] lDirname = '\0';
-    wchar[MAX_PATH_OR_CMD] str = '\0';
-    wchar[MAX_PATH_OR_CMD] lFilterPatterns_buf = '\0';
-    wchar* lFilterPatterns = lFilterPatterns_buf.ptr;
+
+    wchar* lTitle = utf8to16(aTitle);
+    wchar* lDefaultPathAndFile = utf8to16(aDefaultPathAndFile);
+    wchar* lFilterStr = buildFilterString(aNumOfFilterPatterns, aFilterPatterns, aSingleFilterDescription);
+
+    getPathWithoutFinalSlashW(lDirname.ptr, lDefaultPathAndFile);
+    getLastNameW(lBuff.ptr, lDefaultPathAndFile);
 
     HRESULT lHResult = CoInitializeEx(null, 0);
-
-    getPathWithoutFinalSlashW(lDirname.ptr, aDefaultPathAndFile);
-    getLastNameW(lBuff.ptr, aDefaultPathAndFile);
-
-    if (aNumOfFilterPatterns > 0)
-    {
-        if (wsome(aSingleFilterDescription))
-        {
-            wcscpy(lFilterPatterns, aSingleFilterDescription);
-            wcscat(lFilterPatterns, "\n");
-        }
-        wcscat(lFilterPatterns, aFilterPatterns[0]);
-        foreach (i; 1 .. aNumOfFilterPatterns)
-        {
-            wcscat(lFilterPatterns, ";");
-            wcscat(lFilterPatterns, aFilterPatterns[i]);
-        }
-        wcscat(lFilterPatterns, "\n");
-        if (!wsome(aSingleFilterDescription))
-        {
-            wcscpy(str.ptr, lFilterPatterns);
-            wcscat(lFilterPatterns, str.ptr);
-        }
-        wcscat(lFilterPatterns, "All Files\n*.*\n");
-        wchar* p = lFilterPatterns;
-        while ((p = wcschr(p, '\n')) !is null)
-        {
-            *p = '\0';
-            p++;
-        }
-    }
 
     OPENFILENAMEW ofn = {0};
     ofn.lStructSize = OPENFILENAME.sizeof;
     ofn.hwndOwner = GetForegroundWindow();
     ofn.hInstance = null;
-    ofn.lpstrFilter = wcslen(lFilterPatterns) ? lFilterPatterns : null;
+    ofn.lpstrFilter = lFilterStr;
     ofn.lpstrCustomFilter = null;
     ofn.nMaxCustFilter = 0;
     ofn.nFilterIndex = 1;
@@ -1583,13 +1543,13 @@ const(wchar)* _openFileDialogW(
     ofn.nMaxFile = MAX_PATH_OR_CMD;
     ofn.lpstrFileTitle = null;
     ofn.nMaxFileTitle = MAX_PATH_OR_CMD / 2;
-    ofn.lpstrInitialDir = wcslen(lDirname.ptr) ? lDirname.ptr : null;
-    ofn.lpstrTitle = wsome(aTitle) ? aTitle : null;
+    ofn.lpstrInitialDir = wsome(lDirname.ptr) ? lDirname.ptr : null;
+    ofn.lpstrTitle = wsome(lTitle) ? lTitle : null;
     ofn.Flags = OFN_EXPLORER | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
     ofn.nFileOffset = 0;
     ofn.nFileExtension = 0;
     ofn.lpstrDefExt = null;
-    ofn.lCustData = 0L;
+    ofn.lCustData = 0;
     ofn.lpfnHook = null;
     ofn.lpTemplateName = null;
 
@@ -1600,10 +1560,10 @@ const(wchar)* _openFileDialogW(
 
     size_t[MAX_MULTIPLE_FILES] lLengths;
     wchar*[MAX_MULTIPLE_FILES] lPointers;
-    wchar* lRetval, p;
+    wchar* lTmpWChar;
     if (GetOpenFileNameW(&ofn) == 0)
     {
-        lRetval = null;
+        lTmpWChar = null;
     }
     else
     {
@@ -1611,7 +1571,7 @@ const(wchar)* _openFileDialogW(
         lPointers[0] = lBuff.ptr + lBuffLen + 1;
         if (!aAllowMultipleSelects || (lPointers[0][0] == '\0'))
         {
-            lRetval = lBuff.ptr;
+            lTmpWChar = lBuff.ptr;
         }
         else
         {
@@ -1623,7 +1583,7 @@ const(wchar)* _openFileDialogW(
                 i++;
             } while (lPointers[i][0] != '\0');
             i--;
-            p = lBuff.ptr + MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD - 1;
+            wchar* p = lBuff.ptr + MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD - 1;
             *p = '\0';
             for (int j = i; j >= 0; j--)
             {
@@ -1637,7 +1597,7 @@ const(wchar)* _openFileDialogW(
                 *p = '|';
             }
             p++;
-            lRetval = p;
+            lTmpWChar = p;
         }
     }
 
@@ -1645,44 +1605,10 @@ const(wchar)* _openFileDialogW(
     {
         CoUninitialize();
     }
-    return lRetval;
-}
-
-const(char)* openFileDialogWinGui(
-    char* aoBuff,
-    const char* aTitle,
-    const char* aDefaultPathAndFile,
-    const int aNumOfFilterPatterns,
-    const char** aFilterPatterns,
-    const char* aSingleFilterDescription,
-    const bool aAllowMultipleSelects)
-{
-    wchar** lFilterPatterns = cast(wchar**)malloc(aNumOfFilterPatterns * (wchar*).sizeof);
-    foreach (i; 0 .. aNumOfFilterPatterns)
-    {
-        lFilterPatterns[i] = utf8to16(aFilterPatterns[i]);
-    }
-
-    wchar* lTitle = utf8to16(aTitle);
-    wchar* lDefaultPathAndFile = utf8to16(aDefaultPathAndFile);
-    wchar* lSingleFilterDescription = utf8to16(aSingleFilterDescription);
-
-    const(wchar)* lTmpWChar = _openFileDialogW(
-        lTitle,
-        lDefaultPathAndFile,
-        aNumOfFilterPatterns,
-        lFilterPatterns,
-        lSingleFilterDescription,
-        aAllowMultipleSelects);
 
     free(lTitle);
     free(lDefaultPathAndFile);
-    free(lSingleFilterDescription);
-    foreach (i; 0 .. aNumOfFilterPatterns)
-    {
-        free(lFilterPatterns[i]);
-    }
-    free(lFilterPatterns);
+    free(lFilterStr);
 
     if (!lTmpWChar)
         return null;
