@@ -45,9 +45,6 @@ Notes
 - If you pass only a path instead of path + filename,
   make sure it ends with a separator.
 - File and path names are tested before return, they are valid.
-- There's one file filter only, it may contain several patterns.
-- If no filter description is provided,
-  the list of patterns becomes the description.
 - You can query the type of dialog that will be used, see `tinyfd_response`.
 
 - This is not for android nor ios.
@@ -186,9 +183,9 @@ c_str tinyfd_inputBox(c_str title, c_str message, c_str defaultInput)
 /// Single filter, used in open/save file dialogs
 struct TFD_Filter
 {
-    /// Patterns like `["*.jpg", "*.png"]` or MIME types `["audio/mp3"]` (unix only)
+    /// Patterns like `["*.jpg", "*.png"]` or MIME types (kdialog only) `["audio/mp3"]`
     c_str[] patterns;
-    /// Description like "Image files". Not needed for MIME type filters
+    /// Description like "Image files". If none, the list of patterns becomes the description
     c_str description;
 }
 
@@ -216,16 +213,7 @@ c_str tinyfd_saveFileDialog(
     const TFD_Filter[] filters,
 )
 {
-    if (filters.length > 0)
-    {
-        const f1 = filters[0];
-        const f1pat = f1.patterns.ptr;
-        const f1len = cast(int)f1.patterns.length;
-        const f1desc = f1.description;
-        return _saveFileDialog(title, defaultPathAndFile, f1len, f1pat, f1desc);
-    }
-    else
-        return _saveFileDialog(title, defaultPathAndFile, 0, null, null);
+    return _saveFileDialog(title, defaultPathAndFile, filters);
 }
 
 /** Params:
@@ -254,16 +242,7 @@ c_str tinyfd_openFileDialog(
     bool allowMultipleSelects,
 )
 {
-    if (filters.length > 0)
-    {
-        const f1 = filters[0];
-        const f1pat = f1.patterns.ptr;
-        const f1len = cast(int)f1.patterns.length;
-        const f1desc = f1.description;
-        return _openFileDialog(title, defaultPathAndFile, f1len, f1pat, f1desc, allowMultipleSelects);
-    }
-    else
-        return _openFileDialog(title, defaultPathAndFile, 0, null, null, allowMultipleSelects);
+    return _openFileDialog(title, defaultPathAndFile, filters, allowMultipleSelects);
 }
 
 /** Params:
@@ -484,6 +463,7 @@ else
 
 enum int MAX_PATH_OR_CMD = 1024; /* _MAX_PATH or MAX_PATH */
 enum int MAX_MULTIPLE_FILES = 32;
+enum int MAX_PATTERNS = 8;
 
 immutable char[] gTitle = "missing software! (we will try basic console input)";
 
@@ -599,6 +579,44 @@ void ensureFinalSlash(char* aioString)
             strcat(lastcar, SLASH);
         }
     }
+}
+
+uint getValidPatterns(ref const TFD_Filter filter, out bool isMime, out const(char)*[MAX_PATTERNS] output)
+{
+    uint len;
+    foreach (pt; filter.patterns)
+    {
+        if (some(pt))
+        {
+            output[len] = pt;
+            len++;
+            if (len == MAX_PATTERNS)
+                break;
+        }
+    }
+    if (len == 0)
+        return 0;
+
+    uint mime;
+    foreach (pt; output[0 .. len])
+    {
+        if (strchr(pt, '/'))
+            mime++;
+        else
+            break;
+    }
+    if (mime > 0)
+    {
+        // forbid mixing of MIME and usual patterns
+        if (mime != len)
+        {
+            isMime = false;
+            output[0 .. len] = null;
+            return 0;
+        }
+        isMime = true;
+    }
+    return len;
 }
 
 void Hex2RGB(const char* aHexRGB, ref ubyte[3] aoResultRGB)
@@ -1393,65 +1411,59 @@ const(char)* inputBoxWinGui(
     return aoBuff;
 }
 
-wchar* buildFilterString(
-    const int aNumOfFilterPatterns,
-    const char** aFilterPatterns,
-    const char* aSingleFilterDescription)
+wchar* buildFilterString(const TFD_Filter[] filters)
 {
+    bool isMime;
+    const(char)*[MAX_PATTERNS] patterns;
     char[MAX_PATH_OR_CMD] str = '\0';
-    char[MAX_PATH_OR_CMD] str2 = '\0';
+    char[MAX_PATH_OR_CMD] patternsStr = '\0';
 
-    if (aNumOfFilterPatterns > 0)
+    foreach (filter; filters)
     {
-        if (some(aSingleFilterDescription))
-        {
-            strcpy(str.ptr, aSingleFilterDescription);
-            strcat(str.ptr, "\n");
-        }
-        foreach (i; 0 .. aNumOfFilterPatterns)
+        const plen = getValidPatterns(filter, isMime, patterns);
+        if (plen == 0 || isMime)
+            continue;
+
+        patternsStr[0] = '\0';
+        foreach (i, pt; patterns[0 .. plen])
         {
             if (i != 0)
-                strcat(str.ptr, ";");
-            strcat(str.ptr, aFilterPatterns[i]);
+                strcat(patternsStr.ptr, ";");
+            strcat(patternsStr.ptr, pt);
         }
+
+        strcat(str.ptr, some(filter.description) ? filter.description : patternsStr.ptr);
         strcat(str.ptr, "\n");
-        if (!some(aSingleFilterDescription))
-        {
-            strcpy(str2.ptr, str.ptr);
-            strcat(str.ptr, str2.ptr);
-        }
-        strcat(str.ptr, "All Files\n*.*\n");
+        strcat(str.ptr, patternsStr.ptr);
+        strcat(str.ptr, "\n");
     }
+    strcat(str.ptr, "All Files\n*.*\n");
 
     wchar* ret = utf8to16(str.ptr);
-    if (wsome(ret))
-    {
-        wchar* p = ret;
-        while ((p = wcschr(p, '\n')) !is null)
-        {
-            *p = '\0';
-            p++;
-        }
-        return ret;
-    }
-    else
+    if (!ret)
         return null;
+
+    wchar* p = ret;
+    while ((p = wcschr(p, '\n')) !is null)
+    {
+        *p = '\0';
+        p++;
+    }
+    return ret;
 }
 
 const(char)* saveFileDialogWinGui(
     char* aoBuff,
     const char* aTitle,
     const char* aDefaultPathAndFile,
-    const int aNumOfFilterPatterns,
-    const char** aFilterPatterns,
-    const char* aSingleFilterDescription)
+    const TFD_Filter[] aFilters)
 {
     static wchar[MAX_PATH_OR_CMD] lBuff = '\0';
     wchar[MAX_PATH_OR_CMD] lDirname = '\0';
 
     wchar* lTitle = utf8to16(aTitle);
     wchar* lDefaultPathAndFile = utf8to16(aDefaultPathAndFile);
-    wchar* lFilterStr = buildFilterString(aNumOfFilterPatterns, aFilterPatterns, aSingleFilterDescription);
+    wchar* lFilterStr = buildFilterString(aFilters);
 
     getPathWithoutFinalSlashW(lDirname.ptr, lDefaultPathAndFile);
     getLastNameW(lBuff.ptr, lDefaultPathAndFile);
@@ -1514,9 +1526,7 @@ const(char)* openFileDialogWinGui(
     char* aoBuff,
     const char* aTitle,
     const char* aDefaultPathAndFile,
-    const int aNumOfFilterPatterns,
-    const char** aFilterPatterns,
-    const char* aSingleFilterDescription,
+    const TFD_Filter[] aFilters,
     const bool aAllowMultipleSelects)
 {
     static wchar[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
@@ -1524,7 +1534,7 @@ const(char)* openFileDialogWinGui(
 
     wchar* lTitle = utf8to16(aTitle);
     wchar* lDefaultPathAndFile = utf8to16(aDefaultPathAndFile);
-    wchar* lFilterStr = buildFilterString(aNumOfFilterPatterns, aFilterPatterns, aSingleFilterDescription);
+    wchar* lFilterStr = buildFilterString(aFilters);
 
     getPathWithoutFinalSlashW(lDirname.ptr, lDefaultPathAndFile);
     getLastNameW(lBuff.ptr, lDefaultPathAndFile);
@@ -2370,9 +2380,7 @@ const(char*) _inputBox(
 const(char*) _saveFileDialog(
     const char* aTitle,
     const char* aDefaultPathAndFile,
-    const int aNumOfFilterPatterns,
-    const char** aFilterPatterns,
-    const char* aSingleFilterDescription)
+    const TFD_Filter[] aFilters)
 {
     static char[MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = eq(aTitle, "tinyfd_query");
@@ -2389,8 +2397,7 @@ const(char*) _saveFileDialog(
             response("windows");
             return cast(const(char)*)1;
         }
-        p = saveFileDialogWinGui(lBuff.ptr, aTitle, aDefaultPathAndFile, aNumOfFilterPatterns,
-                                 aFilterPatterns, aSingleFilterDescription);
+        p = saveFileDialogWinGui(lBuff.ptr, aTitle, aDefaultPathAndFile, aFilters);
         goto end;
     }
 }
@@ -2429,9 +2436,7 @@ const(char*) _saveFileDialog(
 const(char*) _openFileDialog(
     const char* aTitle,
     const char* aDefaultPathAndFile,
-    const int aNumOfFilterPatterns,
-    const char** aFilterPatterns,
-    const char* aSingleFilterDescription,
+    const TFD_Filter[] aFilters,
     const bool aAllowMultipleSelects)
 {
     static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
@@ -2447,8 +2452,7 @@ const(char*) _openFileDialog(
             response("windows");
             return cast(const(char)*)1;
         }
-        p = openFileDialogWinGui(lBuff.ptr, aTitle, aDefaultPathAndFile, aNumOfFilterPatterns,
-                                 aFilterPatterns, aSingleFilterDescription, aAllowMultipleSelects);
+        p = openFileDialogWinGui(lBuff.ptr, aTitle, aDefaultPathAndFile, aFilters, aAllowMultipleSelects);
         goto end;
     }
 }
@@ -5344,12 +5348,178 @@ const(char*) _inputBox(
     return lBuff.ptr + 1;
 }
 
+void osascriptAppendFilters(const TFD_Filter[] filters, char* output)
+{
+    assert(output);
+
+    if (!filters.length)
+        return;
+
+    bool isMime;
+    const(char)*[MAX_PATTERNS] patterns;
+
+    foreach (filter; filters)
+    {
+        const plen = getValidPatterns(filter, isMime, patterns);
+        if (plen == 0 || isMime)
+            continue;
+
+        strcat(output, "of type {\"");
+        foreach (i, pt; patterns[0 .. plen])
+        {
+            if (strstr(pt, "*."))
+                pt += 2;
+            if (*pt == '\0')
+                continue;
+
+            if (i != 0)
+                strcat(output, "\",\"");
+            strcat(output, pt);
+        }
+        strcat(output, "\"} ");
+        break; // TODO: can multiple?
+    }
+}
+
+void kdialogAppendFilters(const TFD_Filter[] filters, char* output)
+{
+    assert(output);
+
+    if (!filters.length)
+        return;
+
+    bool isMime;
+    const(char)*[MAX_PATTERNS] patterns;
+    char[MAX_PATH_OR_CMD] patternsStr = void;
+    int j;
+
+    // "Description(p1 p2) | p1(p1) | mime1 mime2"
+    strcat(output, " \"");
+    foreach (filter; filters)
+    {
+        const plen = getValidPatterns(filter, isMime, patterns);
+        if (plen == 0)
+            continue;
+
+        patternsStr[0] = '\0';
+        foreach (i, pt; patterns[0 .. plen])
+        {
+            if (i != 0)
+                strcat(patternsStr.ptr, " ");
+            strcat(patternsStr.ptr, pt);
+        }
+
+        if (j != 0)
+            strcat(output, " | ");
+        j++;
+
+        if (!isMime)
+        {
+            strcat(output, some(filter.description) ? filter.description : patternsStr.ptr);
+            strcat(output, "(");
+        }
+        strcat(output, patternsStr.ptr);
+        if (!isMime)
+        {
+            strcat(output, ")");
+        }
+    }
+    strcat(output, "\"");
+    // no need to add "All files"
+}
+
+void zenityAppendFilters(const TFD_Filter[] filters, char* output)
+{
+    assert(output);
+
+    if (!filters.length)
+        return;
+
+    bool isMime;
+    const(char)*[MAX_PATTERNS] patterns;
+
+    foreach (filter; filters)
+    {
+        const plen = getValidPatterns(filter, isMime, patterns);
+        if (plen == 0 || isMime)
+            continue;
+
+        strcat(output, " --file-filter='");
+        if (some(filter.description))
+        {
+            strcat(output, filter.description);
+            strcat(output, " | ");
+        }
+        foreach (pt; patterns[0 .. plen])
+        {
+            strcat(output, pt);
+            strcat(output, " ");
+        }
+        strcat(output, "'");
+    }
+    strcat(output, " --file-filter='All files | *'");
+}
+
+void tkinterAppendFilters(const TFD_Filter[] filters, char* output)
+{
+    assert(output);
+
+    if (!filters.length)
+        return;
+
+    bool isMime;
+    const(char)*[MAX_PATTERNS] patterns;
+    char placeholder = 'a';
+
+    // filetypes=[('Description', ['p1','p2',]), ('a', 'p3'), ('All files', '*')]
+    strcat(output, "filetypes=[");
+    foreach (filter; filters)
+    {
+        const plen = getValidPatterns(filter, isMime, patterns);
+        if (plen == 0 || isMime)
+            continue;
+        if (plen == 1 && lastch(patterns[0]) == '*')
+            continue; // poor osx behaviour
+
+        strcat(output, "('");
+        if (some(filter.description))
+        {
+            strcat(output, filter.description);
+        }
+        else
+        {
+            const len = strlen(output);
+            output[len] = placeholder;
+            output[len + 1] = '\0';
+            placeholder++;
+        }
+        strcat(output, "', ");
+        if (plen > 1)
+        {
+            strcat(output, "[");
+            foreach (pt; patterns[0 .. plen])
+            {
+                strcat(output, "'");
+                strcat(output, pt);
+                strcat(output, "',");
+            }
+            strcat(output, "]");
+        }
+        else
+        {
+            strcat(output, "'");
+            strcat(output, patterns[0]);
+            strcat(output, "'");
+        }
+        strcat(output, "), ");
+    }
+    strcat(output, "('All files', '*')]");
+}
+
 const(char*) _saveFileDialog(
     const char* aTitle,
     const char* aDefaultPathAndFile,
-    const int aNumOfFilterPatterns,
-    const char** aFilterPatterns,
-    const char* aSingleFilterDescription)
+    const TFD_Filter[] aFilters)
 {
     static char[MAX_PATH_OR_CMD] lBuff = '\0';
     const bool lQuery = eq(aTitle, "tinyfd_query");
@@ -5430,36 +5600,8 @@ const(char*) _saveFileDialog(
             strcat(str, "$PWD/");
         }
 
-        if (aNumOfFilterPatterns > 0)
-        {
-            bool pattern; // otherwise MIME-type filter
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                pattern = strchr(aFilterPatterns[i], '*') !is null;
-                if (pattern)
-                    break;
-            }
-            strcat(str, " \"");
-            if (pattern)
-            {
-                if (some(aSingleFilterDescription))
-                {
-                    strcat(str, aSingleFilterDescription);
-                }
-                strcat(str, "(");
-            }
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                if (i != 0)
-                    strcat(str, " ");
-                strcat(str, aFilterPatterns[i]);
-            }
-            if (pattern)
-            {
-                strcat(str, ")");
-            }
-            strcat(str, "\"");
-        }
+        kdialogAppendFilters(aFilters, str);
+
         if (some(aTitle))
         {
             strcat(str, " --title \"");
@@ -5527,21 +5669,9 @@ const(char*) _saveFileDialog(
             strcat(str, aDefaultPathAndFile);
             strcat(str, "\"");
         }
-        if (aNumOfFilterPatterns > 0)
-        {
-            strcat(str, " --file-filter='");
-            if (some(aSingleFilterDescription))
-            {
-                strcat(str, aSingleFilterDescription);
-                strcat(str, " | ");
-            }
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                strcat(str, aFilterPatterns[i]);
-                strcat(str, " ");
-            }
-            strcat(str, "' --file-filter='All files | *'");
-        }
+
+        zenityAppendFilters(aFilters, str);
+
         if (tinyfd_silent)
             strcat(str, " 2>/dev/null ");
     }
@@ -5591,25 +5721,9 @@ const(char*) _saveFileDialog(
                 strcat(str, "',");
             }
         }
-        if (aNumOfFilterPatterns > 1 || (aNumOfFilterPatterns == 1 // test because poor osx behaviour
-                                         && lastch(aFilterPatterns[0]) != '*'))
-        {
-            strcat(str, "filetypes=(");
-            strcat(str, "('");
-            if (some(aSingleFilterDescription))
-            {
-                strcat(str, aSingleFilterDescription);
-            }
-            strcat(str, "',(");
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                strcat(str, "'");
-                strcat(str, aFilterPatterns[i]);
-                strcat(str, "',");
-            }
-            strcat(str, ")),");
-            strcat(str, "('All files','*'))");
-        }
+
+        tkinterAppendFilters(aFilters, str);
+
         strcat(str, ")\"");
     }
     else if (!xdialogPresent() && tkinter3Present())
@@ -5646,25 +5760,9 @@ const(char*) _saveFileDialog(
                 strcat(str, "',");
             }
         }
-        if (aNumOfFilterPatterns > 1 || (aNumOfFilterPatterns == 1 // test because poor osx behaviour
-                                         && lastch(aFilterPatterns[0]) != '*'))
-        {
-            strcat(str, "filetypes=(");
-            strcat(str, "('");
-            if (some(aSingleFilterDescription))
-            {
-                strcat(str, aSingleFilterDescription);
-            }
-            strcat(str, "',(");
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                strcat(str, "'");
-                strcat(str, aFilterPatterns[i]);
-                strcat(str, "',");
-            }
-            strcat(str, ")),");
-            strcat(str, "('All files','*'))");
-        }
+
+        tkinterAppendFilters(aFilters, str);
+
         strcat(str, "))\"");
     }
     else if (xdialogPresent() || dialogName())
@@ -5795,9 +5893,7 @@ const(char*) _saveFileDialog(
 const(char*) _openFileDialog(
     const char* aTitle,
     const char* aDefaultPathAndFile,
-    const int aNumOfFilterPatterns,
-    const char** aFilterPatterns,
-    const char* aSingleFilterDescription,
+    const TFD_Filter[] aFilters,
     const bool aAllowMultipleSelects)
 {
     static char[MAX_MULTIPLE_FILES * MAX_PATH_OR_CMD] lBuff = '\0';
@@ -5848,19 +5944,9 @@ const(char*) _openFileDialog(
             strcat(str, lString);
             strcat(str, "\" ");
         }
-        if (aNumOfFilterPatterns > 0)
-        {
-            strcat(str, "of type {\"");
-            strcat(str, aFilterPatterns[0] + 2);
-            strcat(str, "\"");
-            foreach (i; 1 .. aNumOfFilterPatterns)
-            {
-                strcat(str, ",\"");
-                strcat(str, aFilterPatterns[i] + 2);
-                strcat(str, "\"");
-            }
-            strcat(str, "} ");
-        }
+
+        osascriptAppendFilters(aFilters, str);
+
         if (aAllowMultipleSelects)
         {
             strcat(str, "multiple selections allowed true ' ");
@@ -5914,36 +6000,8 @@ const(char*) _openFileDialog(
             strcat(str, "$PWD/");
         }
 
-        if (aNumOfFilterPatterns > 0)
-        {
-            bool pattern; // otherwise MIME-type filter
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                pattern = strchr(aFilterPatterns[i], '*') !is null;
-                if (pattern)
-                    break;
-            }
-            strcat(str, " \"");
-            if (pattern)
-            {
-                if (some(aSingleFilterDescription))
-                {
-                    strcat(str, aSingleFilterDescription);
-                }
-                strcat(str, "(");
-            }
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                if (i != 0)
-                    strcat(str, " ");
-                strcat(str, aFilterPatterns[i]);
-            }
-            if (pattern)
-            {
-                strcat(str, ")");
-            }
-            strcat(str, "\"");
-        }
+        kdialogAppendFilters(aFilters, str);
+
         if (aAllowMultipleSelects)
         {
             strcat(str, " --multiple --separate-output");
@@ -6019,21 +6077,9 @@ const(char*) _openFileDialog(
             strcat(str, aDefaultPathAndFile);
             strcat(str, "\"");
         }
-        if (aNumOfFilterPatterns > 0)
-        {
-            strcat(str, " --file-filter='");
-            if (some(aSingleFilterDescription))
-            {
-                strcat(str, aSingleFilterDescription);
-                strcat(str, " | ");
-            }
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                strcat(str, aFilterPatterns[i]);
-                strcat(str, " ");
-            }
-            strcat(str, "' --file-filter='All files | *'");
-        }
+
+        zenityAppendFilters(aFilters, str);
+
         if (tinyfd_silent)
             strcat(str, " 2>/dev/null ");
     }
@@ -6086,25 +6132,9 @@ const(char*) _openFileDialog(
                 strcat(str, "',");
             }
         }
-        if (aNumOfFilterPatterns > 1 || (aNumOfFilterPatterns == 1 // test because poor osx behaviour
-                                         && lastch(aFilterPatterns[0]) != '*'))
-        {
-            strcat(str, "filetypes=(");
-            strcat(str, "('");
-            if (some(aSingleFilterDescription))
-            {
-                strcat(str, aSingleFilterDescription);
-            }
-            strcat(str, "',(");
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                strcat(str, "'");
-                strcat(str, aFilterPatterns[i]);
-                strcat(str, "',");
-            }
-            strcat(str, ")),");
-            strcat(str, "('All files','*'))");
-        }
+
+        tkinterAppendFilters(aFilters, str);
+
         strcat(str, `);
 if not isinstance(lFiles, tuple):
     print lFiles
@@ -6153,25 +6183,9 @@ else:
                 strcat(str, "',");
             }
         }
-        if (aNumOfFilterPatterns > 1 || (aNumOfFilterPatterns == 1 // test because poor osx behaviour
-                                         && lastch(aFilterPatterns[0]) != '*'))
-        {
-            strcat(str, "filetypes=(");
-            strcat(str, "('");
-            if (some(aSingleFilterDescription))
-            {
-                strcat(str, aSingleFilterDescription);
-            }
-            strcat(str, "',(");
-            foreach (i; 0 .. aNumOfFilterPatterns)
-            {
-                strcat(str, "'");
-                strcat(str, aFilterPatterns[i]);
-                strcat(str, "',");
-            }
-            strcat(str, ")),");
-            strcat(str, "('All files','*'))");
-        }
+
+        tkinterAppendFilters(aFilters, str);
+
         strcat(str, `);
 if not isinstance(lFiles, tuple):
     print(lFiles)
