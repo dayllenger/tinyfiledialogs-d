@@ -5,6 +5,11 @@ license "Zlib"
 
 importPaths "."
 sourceFiles "tinyfiledialogs.d"
-targetType "staticLibrary"
 
-buildOptions "betterC"
+configuration "default" {
+    targetType "staticLibrary"
+}
+configuration "BC" {
+    buildOptions "betterC"
+    targetType "staticLibrary"
+}
