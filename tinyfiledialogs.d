@@ -186,7 +186,6 @@ c_str tinyfd_inputBox(c_str title, c_str message, c_str defaultInput)
 /** Params:
         title = C-string or null
         defaultPathAndFile = C-string or null
-        numOfFilterPatterns = 0
         filterPatterns = `["*.jpg", "*.png"]`, or (sometimes) MIME type `["audio/mp3"]`, or null
         singleFilterDescription = "Text files" or null
 
@@ -206,19 +205,17 @@ c_str tinyfd_inputBox(c_str title, c_str message, c_str defaultInput)
 c_str tinyfd_saveFileDialog(
     c_str title,
     c_str defaultPathAndFile,
-    int numOfFilterPatterns,
-    c_str* filterPatterns,
+    c_str[] filterPatterns,
     c_str singleFilterDescription,
 )
 {
-    return _saveFileDialog(title, defaultPathAndFile, numOfFilterPatterns,
-        filterPatterns, singleFilterDescription);
+    return _saveFileDialog(title, defaultPathAndFile, cast(int)filterPatterns.length,
+        filterPatterns.ptr, singleFilterDescription);
 }
 
 /** Params:
         title = C-string or null
         defaultPathAndFile = C-string or null
-        numOfFilterPatterns = 0
         filterPatterns = `["*.jpg", "*.png"]`, or (on unix) MIME type `["audio/mp3"]`, or null
         singleFilterDescription = "Image files" or null
         allowMultipleSelects = does not work on console
@@ -231,8 +228,7 @@ c_str tinyfd_saveFileDialog(
     const c_str[] patterns = ["*.cpp", "*.cc", "*.C", "*.cxx", "*.c++"];
     c_str filename = tinyfd_openFileDialog(
         "Open a C++ File", null,
-        cast(int)patterns.length, patterns.ptr,
-        "C++ source code", false);
+        patterns, "C++ source code", false);
     if (filename)
         tinyfd_messageBox("Chosen file is", filename, "ok", "info", 1);
     ---
@@ -240,14 +236,13 @@ c_str tinyfd_saveFileDialog(
 c_str tinyfd_openFileDialog(
     c_str title,
     c_str defaultPathAndFile,
-    int numOfFilterPatterns,
-    c_str* filterPatterns,
+    c_str[] filterPatterns,
     c_str singleFilterDescription,
     bool allowMultipleSelects,
 )
 {
-    return _openFileDialog(title, defaultPathAndFile, numOfFilterPatterns,
-        filterPatterns, singleFilterDescription, allowMultipleSelects);
+    return _openFileDialog(title, defaultPathAndFile, cast(int)filterPatterns.length,
+        filterPatterns.ptr, singleFilterDescription, allowMultipleSelects);
 }
 
 /** Params:
