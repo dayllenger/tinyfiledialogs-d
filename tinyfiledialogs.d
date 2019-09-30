@@ -183,21 +183,29 @@ c_str tinyfd_inputBox(c_str title, c_str message, c_str defaultInput)
     return _inputBox(title, message, defaultInput);
 }
 
+/// Single filter, used in open/save file dialogs
+struct TFD_Filter
+{
+    /// Patterns like `["*.jpg", "*.png"]` or MIME types `["audio/mp3"]` (unix only)
+    c_str[] patterns;
+    /// Description like "Image files". Not needed for MIME type filters
+    c_str description;
+}
+
 /** Params:
         title = C-string or null
         defaultPathAndFile = C-string or null
-        filterPatterns = `["*.jpg", "*.png"]`, or (sometimes) MIME type `["audio/mp3"]`, or null
-        singleFilterDescription = "Text files" or null
+        filters = array of `TFD_Filter` or null
 
     Returns:
         Selected file name, `null` on cancel.
 
     Example:
     ---
-    const c_str[] patterns = ["application/x-dsrc"];
-    c_str filename = tinyfd_saveFileDialog(
-        "Save D source file", "mod.d",
-        cast(int)patterns.length, patterns.ptr, null);
+    const TFD_Filter[] filters = [
+        { ["application/x-dsrc"] }
+    ];
+    c_str filename = tinyfd_saveFileDialog("Save D source file", "mod.d", filters);
     if (filename)
         tinyfd_messageBox("Chosen file is", filename, "ok", "info", 1);
     ---
@@ -205,19 +213,25 @@ c_str tinyfd_inputBox(c_str title, c_str message, c_str defaultInput)
 c_str tinyfd_saveFileDialog(
     c_str title,
     c_str defaultPathAndFile,
-    c_str[] filterPatterns,
-    c_str singleFilterDescription,
+    const TFD_Filter[] filters,
 )
 {
-    return _saveFileDialog(title, defaultPathAndFile, cast(int)filterPatterns.length,
-        filterPatterns.ptr, singleFilterDescription);
+    if (filters.length > 0)
+    {
+        const f1 = filters[0];
+        const f1pat = f1.patterns.ptr;
+        const f1len = cast(int)f1.patterns.length;
+        const f1desc = f1.description;
+        return _saveFileDialog(title, defaultPathAndFile, f1len, f1pat, f1desc);
+    }
+    else
+        return _saveFileDialog(title, defaultPathAndFile, 0, null, null);
 }
 
 /** Params:
         title = C-string or null
         defaultPathAndFile = C-string or null
-        filterPatterns = `["*.jpg", "*.png"]`, or (on unix) MIME type `["audio/mp3"]`, or null
-        singleFilterDescription = "Image files" or null
+        filters = array of `TFD_Filter` or null
         allowMultipleSelects = does not work on console
 
     Returns:
@@ -225,10 +239,10 @@ c_str tinyfd_saveFileDialog(
 
     Example:
     ---
-    const c_str[] patterns = ["*.cpp", "*.cc", "*.C", "*.cxx", "*.c++"];
-    c_str filename = tinyfd_openFileDialog(
-        "Open a C++ File", null,
-        patterns, "C++ source code", false);
+    const TFD_Filter[] filters = [
+        { ["*.cpp", "*.cc", "*.C", "*.cxx", "*.c++"], "C++ source code" }
+    ];
+    c_str filename = tinyfd_openFileDialog("Open a C++ File", null, filters, false);
     if (filename)
         tinyfd_messageBox("Chosen file is", filename, "ok", "info", 1);
     ---
@@ -236,13 +250,20 @@ c_str tinyfd_saveFileDialog(
 c_str tinyfd_openFileDialog(
     c_str title,
     c_str defaultPathAndFile,
-    c_str[] filterPatterns,
-    c_str singleFilterDescription,
+    const TFD_Filter[] filters,
     bool allowMultipleSelects,
 )
 {
-    return _openFileDialog(title, defaultPathAndFile, cast(int)filterPatterns.length,
-        filterPatterns.ptr, singleFilterDescription, allowMultipleSelects);
+    if (filters.length > 0)
+    {
+        const f1 = filters[0];
+        const f1pat = f1.patterns.ptr;
+        const f1len = cast(int)f1.patterns.length;
+        const f1desc = f1.description;
+        return _openFileDialog(title, defaultPathAndFile, f1len, f1pat, f1desc, allowMultipleSelects);
+    }
+    else
+        return _openFileDialog(title, defaultPathAndFile, 0, null, null, allowMultipleSelects);
 }
 
 /** Params:
