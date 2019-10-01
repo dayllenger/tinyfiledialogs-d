@@ -138,10 +138,10 @@ int tinyfd_notifyPopup(c_str title, c_str message, c_str iconType)
         message = C-string or null, can be multiline
         dialogType = "ok" "okcancel" "yesno" "yesnocancel"
         iconType = "info" "warning" "error" "question"
-        defaultButton = 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel
+        defaultButton = 0 - cancel/no, 1 - ok/yes, 2 - no in yesnocancel
 
     Returns:
-        0 for cancel/no, 1 for ok/yes, 2 for no in yesnocancel.
+        0 - cancel/no, 1 - ok/yes, 2 - no in yesnocancel.
 
     Example:
     ---
@@ -164,7 +164,7 @@ int tinyfd_messageBox(
 
 /** Params:
         title = C-string or null
-        message = C-string or null, may NOT contain \ n or \ t on windows
+        message = C-string or null; some platforms (Windows, GTK-based) can't display multiline text
         defaultInput = C-string, if null it's a password box
 
     Returns:
@@ -172,10 +172,9 @@ int tinyfd_messageBox(
 
     Example:
     ---
-    c_str passwd = tinyfd_inputBox("a password box",
-        "your password will be revealed", null);
+    c_str passwd = tinyfd_inputBox("A password box", "Your password will be revealed", null);
     if (passwd)
-        printf("your password is: %s\n", passwd);
+        tinyfd_notifyPopup("Your password is:", passwd, "warning");
     ---
 */
 c_str tinyfd_inputBox(c_str title, c_str message, c_str defaultInput)
@@ -195,17 +194,18 @@ struct TFD_Filter
 /** Params:
         title = C-string or null
         defaultPathAndFile = C-string or null
-        filters = array of `TFD_Filter` or null
+        filters = list of file type patterns
 
     Returns:
-        Selected file name, `null` on cancel.
+        Selected file full name, `null` on cancel.
 
     Example:
     ---
     const TFD_Filter[] filters = [
-        { ["application/x-dsrc"] }
+        { ["*.css" ], "CSS" },
+        { ["*.sass", "*.scss" ], "SASS" },
     ];
-    c_str filename = tinyfd_saveFileDialog("Save D source file", "mod.d", filters);
+    c_str filename = tinyfd_saveFileDialog("Save as...", "style.css", filters);
     if (filename)
         tinyfd_messageBox("Chosen file is", filename, "ok", "info", 1);
     ---
@@ -222,18 +222,19 @@ c_str tinyfd_saveFileDialog(
 /** Params:
         title = C-string or null
         defaultPathAndFile = C-string or null
-        filters = array of `TFD_Filter` or null
+        filters = list of file type patterns
         allowMultipleSelects = does not work on console
 
     Returns:
-        Selected file name or `null` on cancel. In case of multiple files, the separator is |.
+        Selected file full name, `null` on cancel. In case of multiple files, the separator is |.
 
     Example:
     ---
     const TFD_Filter[] filters = [
+        { ["*.c" ], "C source code" },
         { ["*.cpp", "*.cc", "*.C", "*.cxx", "*.c++"], "C++ source code" }
     ];
-    c_str filename = tinyfd_openFileDialog("Open a C++ File", null, filters, false);
+    c_str filename = tinyfd_openFileDialog("Open a C/C++ File", null, filters, false);
     if (filename)
         tinyfd_messageBox("Chosen file is", filename, "ok", "info", 1);
     ---
@@ -271,16 +272,15 @@ c_str tinyfd_selectFolderDialog(c_str title, c_str defaultPath)
         title = C-string or null
         defaultHexRGB = default color, C-string or null
         defaultRGB = used only if the previous parameter is null
-        resultRGB = also contains the result
+        resultRGB = contains the decoded result
 
     Returns:
         The hexcolor as a string like "#FF0000" or `null` on cancel.
 
     Example:
     ---
-    ubyte[3] rgbColor;
-    c_str hexColor = tinyfd_colorChooser("Choose a nice color", "#FF0077",
-        rgbColor, rgbColor);
+    ubyte[3] rgb;
+    c_str hexColor = tinyfd_colorChooser("Choose a nice color", "#FF0077", rgb, rgb);
     if (hexColor)
         tinyfd_messageBox("The selected hexcolor is", hexColor, "ok", "info", 1);
     ---
