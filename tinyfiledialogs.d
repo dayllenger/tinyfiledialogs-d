@@ -10,72 +10,75 @@ Native dialog library for Windows, macOS, GTK+, Qt, console & more.
 SSH supported via automatic switch to console mode or X11 forwarding.
 
 8 functions:
-- beep
-- notify popup (tray)
-- message & question
-- input & password
-- save file
-- open file(s)
-- select folder
-- color picker
-
+$(LIST
+  * beep
+  * notify popup (tray)
+  * message & question
+  * input & password
+  * save file
+  * open file(s)
+  * select folder
+  * color picker
+)
 Each function is documented with examples.
 The dialogs can be forced into console mode.
 Supports UTF-8 (except Windows console).
 
 Windows XP to 10:
-- native code & vbs create the graphic dialogs
-- enhanced console mode can use dialog.exe from
-http://andrear.altervista.org/home/cdialog.php
-- basic console input
-
+$(LIST
+  * native code & vbs create the graphic dialogs
+  * enhanced console mode can use dialog.exe from
+    `http://andrear.altervista.org/home/cdialog.php`
+  * basic console input
+)
 Unix (using command line calls):
-- applescript, kdialog, zenity
-- python (2 or 3) + tkinter + python-dbus (optional)
-- dialog (opens a console if needed)
-- basic console input
+$(LIST
+  * applescript, kdialog, zenity
+  * python (2 or 3) + tkinter + python-dbus (optional)
+  * whiptail, dialog (opens a console if needed)
+  * basic console input
+)
 The same executable can run across desktops & distributions.
 
 Notes
 =====
-
-- Avoid using " and ' in titles and messages.
-- String memory is preallocated statically for all the returned values.
-- Use platform-specific path separators: \ on Windows, / on Unix.
-- If you pass only a path instead of path + filename,
-  make sure it ends with a separator.
-- File and path names are tested before return, they are valid.
-- You can query the type of dialog that will be used, see `tinyfd_response`.
-
-- This is not for android nor ios.
-- The code is betterC compatible, originally pure C89.
-- Windows is fully supported from XP to 10 (maybe even older versions).
-- OSX supported from 10.4 to latest (maybe even older versions).
-- On Windows, it links against Comdlg32.lib and Ole32.lib.
-- Set TINYFD_NOLIB version if you don't want to include the code creating
-  graphic dialogs. Then you won't need to link against those libs.
-- On Unix, it tries command line calls.
-  They are already available on most (if not all) desktops.
-- In the absence of those it will use gdialog, gxmessage or whiptail
-  with a textinputbox.
-- If nothing is found, it switches to basic console input,
-  and opens a console if needed (requires xterm + bash).
-
-- On Windows, console mode only make sense for console applications.
-- The package dialog must be installed to run in enhanced console mode.
-  It is already installed on most Unix systems.
-- On OSX, the package dialog can be installed via
-  http://macappstore.org/dialog or http://macports.org
-- On Windows, for enhanced console mode,
-  dialog.exe should be copied somewhere on your executable path.
-  It can be found at the bottom of the following page:
-  http://andrear.altervista.org/home/cdialog.php
-- If dialog is missing, it will switch to basic console input.
-- Mutiple selects are not allowed in console mode.
-
+$(LIST
+  * This is $(I not) for Android nor iOS.
+  * The code is betterC compatible, originally pure C89.
+  * Windows is fully supported from XP to 10 (maybe even older versions).
+  * OSX supported from 10.4 to latest (maybe even older versions).
+  * On Windows, it links against comdlg32.lib, ole32.lib, and user32.lib.
+  * Set TINYFD_NOLIB version if you don't want to include the code creating
+    graphic dialogs. Then you won't need to link against those libs.
+  * On Unix, it tries command line calls.
+    They are already available on most (if not all) desktops.
+  * In the absence of those it will use gdialog, gxmessage or whiptail
+    with a textinputbox.
+  * If nothing is found, it switches to basic console input,
+    and opens a console if needed (requires xterm + bash).
+  * On OSX, the package dialog can be installed via
+    `http://macappstore.org/dialog` or `https://www.macports.org/`
+  * On Windows, for enhanced console mode,
+    dialog.exe should be copied somewhere on your executable path.
+    It can be found at the bottom of the following page:
+    `http://andrear.altervista.org/home/cdialog.php`
+  * If dialog is missing, it will switch to basic console input.
+  * Mutiple selects are not allowed in console mode.
+)
+$(LIST
+  * Avoid using " and ' in titles and messages.
+  * String memory is preallocated statically for all the returned values.
+  * Use platform-specific path separators: \ on Windows, / on Unix.
+  * If you pass only a path instead of path + filename,
+    make sure it ends with a separator.
+  * File and path names are tested before return, they are valid.
+  * You can query the type of dialog that will be used, see [tinyfd_response].
+)
 Thanks for contributions, bug corrections & thorough testing to:
-- Don Heyse http://ldglite.sf.net for bug corrections & thorough testing!
-- Paul Rouget
+$(LIST
+  * Don Heyse http://ldglite.sf.net for bug corrections & thorough testing!
+  * Paul Rouget
+)
 */
 /*
 zlib License
@@ -335,12 +338,11 @@ bool tinyfd_verbose;
 /// On unix, hide errors and warnings from called dialog; default is `true`
 bool tinyfd_silent = true;
 
-/** For unix & windows: `false` (graphic mode, default) or `true` (console mode).
-
-    `false` - try to use a graphic solution, if it fails then it uses console mode.
-    `true` - forces all dialogs into console mode even when an X server is present,
-    if the package dialog (and a console is present) or dialog.exe is installed.
-    On windows it only make sense for console applications.
+/** `false` (default) - try to use a graphic solution, if it fails use console mode.
+    `true` - force all dialogs into console mode even when an X server is present,
+    if the package `whiptail` or `dialog` and a console are present in a system,
+    or `dialog.exe` is installed.
+    On Windows it only make sense for console applications.
 */
 version (Windows)
 {
