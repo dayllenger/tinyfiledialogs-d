@@ -3,6 +3,12 @@
 Native dialog library for Windows, macOS, GTK+, Qt, console & more.
 SSH supported via automatic switch to console mode or X11 forwarding.
 
+*NOTE: this package may not reflect the latest version of [the original library by its author](https://sourceforge.net/projects/tinyfiledialogs/).*
+
+*NOTE: the main purpose of this package is to implement native file and color dialogs in [beamui](https://github.com/dayllenger/beamui), so don't expect much support and development.*
+
+<hr>
+
 Originally pure C89. To build in betterC mode, enable `BC` subconfiguration.
 
 For examples and info take a look at [the documentation](https://tinyfiledialogs.dpldocs.info/tinyfiledialogs.html).
@@ -26,5 +32,3 @@ if (filename)
     tinyfd_messageBox("The filename is", filename, "ok", "info", 1);
 }
 ```
-
-**NOTE: the main purpose of this package is to implement native file and color dialogs in [beamui](https://github.com/dayllenger/beamui), so don't expect much support and development.**
